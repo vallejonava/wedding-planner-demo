@@ -11,7 +11,7 @@ Firebase project: `tanvi-and-justin`
 | File | Audience | URL pattern |
 |------|----------|-------------|
 | `invitado.html` | Each guest (personalized) | `invitado.html?guestId=XXXX` |
-| `admin.html` | Wedding admin (couple / planner) | `admin.html` |
+| `index.html` | Wedding admin (couple / planner) | `index.html` |
 | `tv.html` | Smart TV in venue | `tv.html` |
 | `remote.html` | Admin's phone (TV control) | `remote.html` |
 | `chofer.html` | Each driver | `chofer.html?driverId=XXXX` |
