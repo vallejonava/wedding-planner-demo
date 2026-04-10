@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Wedding · PIN Setup</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100vh;font-family:'DM Sans',sans-serif;background:#0d1117;color:#e2e8f0;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+.card{width:100%;max-width:380px;background:#161b22;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:2.5rem 2rem;box-shadow:0 30px 60px rgba(0,0,0,.5);animation:up .4s ease both}
+@keyframes up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.logo{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;color:#fff;text-align:center;margin-bottom:.2rem}
+.logo em{font-style:italic;color:#d4a84f}
+.eyebrow{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:center;margin-bottom:2.5rem}
+.field{margin-bottom:1.25rem}
+.field label{display:block;font-size:.65rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#64748b;margin-bottom:.5rem}
+.field input{width:100%;background:#1c2330;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.8rem 1rem;color:#fff;font-size:1.2rem;letter-spacing:.4em;text-align:center;font-family:'DM Sans',monospace;transition:border-color .2s}
+.field input:focus{outline:none;border-color:#4a9dad}
+.hint{font-size:.65rem;color:rgba(255,255,255,.25);margin-top:.35rem;letter-spacing:.02em}
+.divider{height:1px;background:rgba(255,255,255,.06);margin:1.5rem 0}
+.btn{width:100%;padding:.85rem;background:linear-gradient(135deg,#2a6e7c,#4a9dad);color:#fff;border:none;border-radius:12px;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .2s;letter-spacing:.04em}
+.btn:active{opacity:.8;transform:scale(.98)}
+.toast{margin-top:1rem;padding:.65rem .9rem;border-radius:10px;font-size:.78rem;text-align:center;display:none}
+.toast.ok{background:rgba(22,163,74,.15);border:1px solid rgba(22,163,74,.3);color:#4ade80}
+.toast.err{background:rgba(220,38,38,.12);border:1px solid rgba(220,38,38,.3);color:#fca5a5}
+.current{background:#1c2330;border-radius:10px;padding:.85rem 1rem;margin-bottom:1.5rem;font-size:.75rem;color:rgba(255,255,255,.4);display:none}
+.current span{color:#d4a84f;font-weight:600;letter-spacing:.1em}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">Tanvi <em>&amp;</em> Justin</div>
+  <div class="eyebrow">PIN Configuration</div>
+
+  <div class="current" id="current-display"></div>
+
+  <div class="field">
+    <label>Admin PIN</label>
+    <input type="password" id="admin-pin" placeholder="••••" maxlength="8" inputmode="numeric"/>
+    <div class="hint">Used to access admin.html</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="field">
+    <label>Remote PIN</label>
+    <input type="password" id="remote-pin" placeholder="••••" maxlength="8" inputmode="numeric"/>
+    <div class="hint">Used to access remote.html (TV control)</div>
+  </div>
+
+  <button class="btn" onclick="savePins()">💾 Save PINs to Firebase</button>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyCoXMPGLlPn56oKYnWX6iHuJOlJYPlyUV8",authDomain:"tanvi-and-justin.firebaseapp.com",projectId:"tanvi-and-justin",storageBucket:"tanvi-and-justin.firebasestorage.app",messagingSenderId:"418808308001",appId:"1:418808308001:web:730d002e16f82327f5de60"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+
+// Load current values on open
+(async()=>{
+  try{
+    const doc=await db.collection('config').doc('settings').get();
+    if(doc.exists){
+      const d=doc.data();
+      const el=document.getElementById('current-display');
+      el.style.display='block';
+      el.innerHTML=`Current PINs — Admin: <span>${d.adminPin?'•'.repeat(d.adminPin.length):'not set'}</span> &nbsp;·&nbsp; Remote: <span>${d.remotePin?'•'.repeat(d.remotePin.length):'not set'}</span>`;
+    }
+  }catch(_){}
+})();
+
+async function savePins(){
+  const adminPin  = document.getElementById('admin-pin').value.trim();
+  const remotePin = document.getElementById('remote-pin').value.trim();
+
+  if(!adminPin && !remotePin){
+    showToast('Enter at least one PIN to save.','err'); return;
+  }
+  if((adminPin&&(adminPin.length<4||isNaN(adminPin)))||(remotePin&&(remotePin.length<4||isNaN(remotePin)))){
+    showToast('PINs must be 4–8 numeric digits.','err'); return;
+  }
+
+  const data={updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+  if(adminPin)  data.adminPin  = adminPin;
+  if(remotePin) data.remotePin = remotePin;
+
+  try{
+    await db.collection('config').doc('settings').set(data,{merge:true});
+    showToast(`✓ Saved! ${adminPin?'Admin: '+'•'.repeat(adminPin.length):''}${adminPin&&remotePin?' · ':''}${remotePin?'Remote: '+'•'.repeat(remotePin.length):''}`, 'ok');
+    document.getElementById('admin-pin').value='';
+    document.getElementById('remote-pin').value='';
+    // Refresh current display
+    const el=document.getElementById('current-display');
+    el.style.display='block';
+    const aShow = adminPin || '(unchanged)';
+    const rShow = remotePin || '(unchanged)';
+    el.innerHTML=`Saved — Admin: <span>${adminPin?'•'.repeat(adminPin.length):aShow}</span> &nbsp;·&nbsp; Remote: <span>${remotePin?'•'.repeat(remotePin.length):rShow}</span>`;
+  }catch(e){
+    showToast('Firebase error: '+e.message,'err');
+  }
+}
+
+function showToast(msg,type){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className='toast '+type;
+  el.style.display='block';
+  setTimeout(()=>el.style.display='none',4000);
+}
+</script>
+</body>
+</html>

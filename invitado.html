@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <title>Tanvi & Justin - Wedding</title>
+  <meta property="og:image" content="https://raw.githubusercontent.com/JustinandTanviWedding/JT-Wedding/refs/heads/main/images/hero.png"/>
+  <meta property="og:title" content="Tanvi & Justin - Wedding"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    :root{
+      --sand:#f5e9d3;--sand-mid:#e8d5b0;--sea:#2a6e7c;--sea-light:#4a9dad;
+      --coral:#c96a3e;--gold:#c4933f;--dusk:#7b4f3a;--white:#fffdf8;--text:#3a2e25;
+      --green:#16a34a;--red:#dc2626;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{font-family:'Raleway',sans-serif;background:var(--white);color:var(--text);overflow-x:hidden}
+
+    /* ── ACCESS DENIED ── */
+    .access-denied{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;background:linear-gradient(135deg,var(--sea),#1a4e5a);color:var(--white);text-align:center;padding:2rem}
+    .access-denied h2{font-family:'Cormorant Garamond',serif;font-size:2.2rem;margin-bottom:1rem}
+
+    /* ── TOPNAV ── */
+    .topnav{background:rgba(42,110,124,.96);backdrop-filter:blur(10px);padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:.5rem}
+    .topnav-brand{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--white);text-decoration:none;cursor:pointer}
+    .topnav-links{display:flex;gap:.2rem;align-items:center;flex-wrap:wrap}
+    .topnav-links button{background:none;border:none;color:rgba(255,253,248,.75);font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:color .3s;padding:.4rem .6rem}
+    .topnav-links button:hover,.topnav-links button.active-nav{color:var(--sand)}
+
+    /* ── SECTIONS ── */
+    .page-section{display:none;animation:fadeUp .4s ease both}
+    .page-section.active{display:block}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
+    .reveal.in-view{opacity:1;transform:translateY(0)}
+    .container-custom{max-width:960px;margin:0 auto}
+
+    /* ── HERO ── */
+    .hero{min-height:100vh;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .hero-bg{position:absolute;inset:0;animation:heroZoom 20s ease-in-out infinite alternate;background-size:cover;background-position:center;background-color:#1a4e5a}
+    @keyframes heroZoom{from{transform:scale(1.05)}to{transform:scale(1.12)}}
+    .hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(18,35,45,.2),rgba(18,35,45,.52));z-index:1}
+    .hero-wave{position:absolute;bottom:-2px;left:0;width:100%;z-index:2}
+    .hero-content{position:relative;z-index:3;text-align:center;color:var(--white);padding:2rem;animation:fadeUp 1.4s ease both}
+    .hero-eyebrow{font-size:.72rem;letter-spacing:.35em;text-transform:uppercase;color:rgba(255,253,248,.75);margin-bottom:1.2rem}
+    .hero-names{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,9vw,6rem);font-weight:300;line-height:1}
+    .hero-names .amp{font-style:italic;color:var(--sand);font-size:.75em}
+    .hero-divider{width:60px;height:1px;background:rgba(255,253,248,.5);margin:1.8rem auto}
+    .hero-date{font-family:'Cormorant Garamond',serif;font-size:clamp(1rem,3vw,1.4rem);font-style:italic;font-weight:300}
+    .hero-location{font-size:.72rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,253,248,.7);margin-top:.5rem}
+    .hero-cta{margin-top:2.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+
+    /* ── BUTTONS ── */
+    .btn-sea{background:var(--sea);color:var(--white)!important;border:none;padding:.75rem 2.2rem;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;text-decoration:none;transition:background .3s,transform .2s;display:inline-block;cursor:pointer}
+    .btn-sea:hover{background:var(--sea-light);transform:translateY(-2px)}
+    .btn-outline-sand{background:transparent;color:var(--white)!important;border:1px solid rgba(255,253,248,.6);padding:.75rem 2.2rem;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;text-decoration:none;display:inline-block;transition:background .3s}
+    .btn-outline-sand:hover{background:rgba(255,253,248,.1)}
+
+    /* ── COUNTDOWN ── */
+    .countdown-bar{background:linear-gradient(135deg,#1a3a42,#12282e,#1a3a42);color:var(--white);border-top:1px solid rgba(196,147,63,.25)}
+    .countdown-inner{display:flex;justify-content:center;align-items:stretch;max-width:560px;margin:0 auto}
+    .countdown-item{text-align:center;padding:1.4rem 2rem;flex:1;position:relative}
+    .countdown-item:not(:last-child)::after{content:'';position:absolute;right:0;top:25%;bottom:25%;width:1px;background:rgba(196,147,63,.25)}
+    .countdown-num{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,2.8rem);font-weight:300;line-height:1}
+    .countdown-label{font-size:.58rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(196,147,63,.8);margin-top:.4rem}
+
+    /* ── SECTION TYPOGRAPHY ── */
+    .section-eyebrow{font-size:.7rem;letter-spacing:.35em;text-transform:uppercase;color:var(--sea);margin-bottom:.8rem}
+    .section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:300;line-height:1.1;color:var(--text)}
+    .section-divider{width:50px;height:1px;background:var(--gold);margin:1.5rem 0 2rem}
+    .section-divider.center{margin-left:auto;margin-right:auto}
+
+    /* ── FAQ ── */
+    .faq-item{border-bottom:1px solid var(--sand-mid);padding:1.5rem 0}
+    .faq-q{font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:var(--sea);cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+    .faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease,margin-top .4s ease;font-size:.88rem;line-height:1.8;color:#5a4e44}
+    .faq-item.open .faq-a{max-height:600px;margin-top:1rem}
+    .faq-item.open .faq-q{color:var(--gold)}
+
+    /* ── RSVP ── */
+    .rsvp-card{background:var(--white);padding:3rem 2.5rem;box-shadow:0 20px 60px rgba(42,110,124,.08);border:1px solid var(--sand-mid)}
+    .form-label{font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:var(--sea);margin-bottom:.6rem;display:block}
+    .form-control-custom{width:100%;background:var(--white);border:none;border-bottom:1px solid var(--sand-mid);padding:.8rem 0;font-size:.9rem;font-family:'Raleway',sans-serif;transition:border-color .3s}
+    .form-control-custom:focus{outline:none;border-color:var(--sea)}
+    .attendance-options{display:flex;gap:1.5rem;margin-top:.5rem;flex-wrap:wrap}
+    .att-opt{cursor:pointer;display:flex;align-items:center;gap:.5rem;font-size:.85rem}
+    .att-opt input{accent-color:var(--sea)}
+
+    /* ── EVENTS CARDS ── */
+    .detail-card{background:var(--white);padding:2.5rem 2rem;text-align:center;border-bottom:3px solid transparent;transition:border-color .3s,transform .3s,box-shadow .3s;height:100%}
+    .detail-card:hover{border-color:var(--sea);transform:translateY(-5px);box-shadow:0 15px 40px rgba(42,110,124,.12)}
+    .detail-icon{font-size:2.2rem;margin-bottom:1rem;display:block}
+    .detail-card h5{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:400;color:var(--sea);margin-bottom:.7rem}
+    .detail-card p{font-size:.85rem;color:#6a5e54;line-height:1.7}
+
+    /* ── TIMELINE ── */
+    .timeline{position:relative;max-width:680px;margin:0 auto}
+    .timeline::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--sand-mid);transform:translateX(-50%)}
+    .tl-item{display:flex;justify-content:flex-end;padding-right:calc(50% + 2rem);margin-bottom:2.5rem;position:relative}
+    .tl-item.right{justify-content:flex-start;padding-right:0;padding-left:calc(50% + 2rem)}
+    .tl-dot{position:absolute;left:50%;top:.5rem;width:14px;height:14px;background:var(--gold);border:2px solid var(--white);border-radius:50%;transform:translateX(-50%);box-shadow:0 0 0 3px var(--sand-mid)}
+    .tl-card{background:var(--sand);padding:1.2rem 1.5rem;max-width:260px}
+    .tl-day{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--sea);font-weight:400}
+    .tl-block{margin-top:.6rem;padding-top:.6rem;border-top:1px solid var(--sand-mid)}
+    .tl-time{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:.2rem}
+    .tl-event{font-size:.82rem;color:#5a4e44;line-height:1.6}
+
+    /* ── CALENDAR ADD ── */
+    .cal-add-wrap{position:relative;display:inline-block;margin-top:1.5rem}
+    .cal-add-btn{background:none;border:1px solid rgba(196,147,63,.35);color:var(--gold);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;padding:.4rem 1rem;cursor:pointer;font-family:'Raleway',sans-serif;transition:background .2s,color .2s}
+    .cal-add-btn:hover{background:var(--gold);color:#fff}
+    .cal-dropdown{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#fff;border:1px solid rgba(196,147,63,.25);box-shadow:0 4px 18px rgba(0,0,0,.12);min-width:210px;z-index:200;overflow:hidden}
+    .cal-dropdown.open{display:block}
+    .cal-dropdown a{display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;font-size:.72rem;color:#333;text-decoration:none;font-family:'Raleway',sans-serif;transition:background .15s}
+    .cal-dropdown a:hover{background:#fdf8f0}
+
+    /* ── TRAVEL ── */
+    .route-flow{display:flex;align-items:stretch;gap:0;margin:2.5rem 0 2rem}
+    .route-step{flex:1;background:var(--white);border:1px solid var(--sand-mid);padding:1.6rem 1.4rem}
+    .route-step.highlight{border-color:var(--gold);box-shadow:0 4px 24px rgba(196,147,63,.18)}
+    .route-step-label{font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--sea);margin-bottom:.5rem}
+    .route-step-icon{font-size:1.4rem;margin-bottom:.5rem;display:block}
+    .route-step-title{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--text);margin-bottom:.4rem}
+    .route-step-desc{font-size:.8rem;line-height:1.7;color:#6a5e54}
+    .route-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 .4rem;flex-shrink:0;gap:.25rem}
+    .route-arrow-line{width:28px;height:1px;background:var(--gold)}
+    .route-arrow-tip{color:var(--gold);font-size:.85rem;line-height:1}
+    .route-arrow-time{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:#6a5e54;white-space:nowrap}
+    .time-note{background:var(--white);border-left:3px solid var(--gold);padding:1.2rem 1.5rem;margin:2rem 0;font-size:.85rem;line-height:1.85;color:#5a4e44}
+    .travel-pill-row{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem}
+    .travel-pill{padding:.65rem .9rem;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sea);background:rgba(255,253,248,.82);border:1px solid rgba(196,147,63,.18)}
+    .tip-card{border:1px solid var(--sand-mid);padding:1.4rem 1.6rem;display:flex;gap:1rem;align-items:flex-start}
+    .tip-icon{font-size:1.4rem;line-height:1}
+    .tip-content h6{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem}
+    .tip-content p{font-size:.8rem;line-height:1.65;color:#6a5e54}
+
+    /* ── TRIVIA ── */
+    .score-bar-wrap{display:flex;align-items:center;gap:1rem;margin-bottom:2rem}
+    .score-num-display{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--sea)}
+    .score-prog-track{flex:1;height:4px;background:var(--sand-mid);border-radius:2px;overflow:hidden}
+    .score-prog-fill{height:100%;background:var(--gold);width:0%;transition:width .4s}
+    .q-card{background:var(--white);padding:2.5rem;border:1px solid var(--sand-mid);position:relative}
+    .q-category-badge{position:absolute;top:-12px;left:2.5rem;background:var(--sea);color:white;padding:.3rem .8rem;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase}
+    .q-counter{font-size:.65rem;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;margin-bottom:1rem}
+    .q-text{font-family:'Cormorant Garamond',serif;font-size:1.6rem;line-height:1.3;color:var(--text);margin-bottom:2rem}
+    .q-options{display:grid;gap:.8rem}
+    .q-opt-btn{background:var(--white);border:1px solid var(--sand-mid);padding:1rem 1.2rem;text-align:left;font-size:.88rem;cursor:pointer;transition:all .2s;font-family:'Raleway',sans-serif}
+    .q-opt-btn:hover:not(:disabled){border-color:var(--sea);background:#f8fbfc}
+    .q-opt-btn.correct{background:#e7f3ef;border-color:#2d8a6c;color:#1a5240}
+    .q-opt-btn.wrong{background:#fdf2f2;border-color:#d9534f;color:#a94442;opacity:.7}
+    .fact-box{margin-top:2rem;padding:1.5rem;background:#fdf8f0;border-left:3px solid var(--gold);display:none}
+    .fact-label{font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:.5rem;font-weight:700}
+    .next-btn{margin-top:2rem;background:var(--sea);color:white;border:none;padding:.8rem 2rem;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;display:none}
+    .end-screen{display:none;text-align:center;padding:3rem 0}
+    .end-score{font-family:'Cormorant Garamond',serif;font-size:5rem;color:var(--sea);line-height:1}
+
+    /* ── CHATBOT ── */
+    .chatbot-btn{position:fixed;bottom:2rem;right:2rem;width:60px;height:60px;background:var(--sea);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;cursor:pointer;box-shadow:0 10px 30px rgba(42,110,124,.3);z-index:1000;border:none;transition:transform .3s}
+    .chatbot-btn:hover{transform:scale(1.1)}
+    #chat-badge{position:absolute;top:-4px;right:-4px;background:var(--red);color:white;border-radius:50%;width:18px;height:18px;font-size:.6rem;display:flex;align-items:center;justify-content:center;font-weight:700}
+    .chatbot-container{position:fixed;bottom:6rem;right:2rem;width:340px;height:480px;background:var(--white);border-radius:12px;box-shadow:0 15px 50px rgba(0,0,0,.15);display:none;flex-direction:column;z-index:1000;overflow:hidden;border:1px solid var(--sand-mid)}
+    .chatbot-header{background:var(--sea);color:white;padding:1.2rem 1.5rem;display:flex;justify-content:space-between;align-items:center}
+    .chatbot-header h4{font-family:'Cormorant Garamond',serif;margin:0;font-size:1.2rem}
+    .chatbot-messages{flex:1;padding:1.2rem;overflow-y:auto;display:flex;flex-direction:column;gap:.8rem;background:#fcfaf7}
+    .chat-msg{max-width:85%;padding:.7rem .9rem;border-radius:12px;font-size:.82rem;line-height:1.5}
+    .chat-msg.bot{background:var(--sand);color:var(--text);align-self:flex-start;border-bottom-left-radius:2px}
+    .chat-msg.user{background:var(--sea);color:white;align-self:flex-end;border-bottom-right-radius:2px}
+    .chatbot-input{padding:1rem;border-top:1px solid var(--sand-mid);display:flex;gap:.5rem}
+    .chatbot-input input{flex:1;border:1px solid var(--sand-mid);padding:.6rem .8rem;border-radius:20px;font-size:.82rem;outline:none}
+    .chatbot-input button{background:var(--sea);color:white;border:none;padding:.5rem 1rem;border-radius:20px;font-size:.75rem;cursor:pointer}
+
+    /* ════════════════════════════════
+       PHASE SCREENS
+    ════════════════════════════════ */
+
+    /* ── PHASE OVERLAY (full-screen takeover) ── */
+    .phase-screen{display:none;min-height:100vh;flex-direction:column}
+    .phase-screen.active{display:flex}
+
+    /* ── FLIGHT TRACKER ── */
+    .flight-screen{background:linear-gradient(160deg,#0d1b2a,#1a3a4a,#0d2535);color:white}
+    .flight-header{padding:2rem 1.5rem 1rem;text-align:center}
+    .flight-header .fh-eyebrow{font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.5rem}
+    .flight-header h2{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:300}
+    .flight-progress-bar{height:4px;background:rgba(255,255,255,.1);margin:1.5rem}
+    .flight-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),#f5c77e);border-radius:2px;transition:width 1s ease}
+    .flight-legs{padding:0 1.5rem;display:flex;flex-direction:column;gap:1rem}
+    .flight-leg{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:1.2rem 1.4rem;display:flex;align-items:center;gap:1rem}
+    .flight-leg.current{border-color:var(--gold);background:rgba(196,147,63,.1)}
+    .flight-leg.done{opacity:.5}
+    .fl-airports{flex:1}
+    .fl-route{display:flex;align-items:center;gap:.6rem;font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:300;margin-bottom:.2rem}
+    .fl-arrow{color:var(--gold);font-size:1rem}
+    .fl-meta{font-size:.68rem;color:rgba(255,255,255,.5);letter-spacing:.08em}
+    .fl-status{text-align:right;flex-shrink:0}
+    .fl-badge{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;padding:.25rem .6rem;border-radius:20px;font-weight:700}
+    .fl-badge.done{background:rgba(22,163,74,.2);color:#4ade80}
+    .fl-badge.active{background:rgba(196,147,63,.25);color:#fcd34d;animation:badgePulse 2s ease infinite}
+    .fl-badge.upcoming{background:rgba(255,255,255,.08);color:rgba(255,255,255,.4)}
+    @keyframes badgePulse{0%,100%{opacity:1}50%{opacity:.6}}
+    .flight-countdown{margin:1.5rem;padding:1.25rem 1.5rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;text-align:center}
+    .fc-label{font-size:.62rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.5rem}
+    .fc-time{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:300;color:var(--gold);letter-spacing:.1em}
+
+    /* ── ARRIVAL / INDIA WELCOME ── */
+    .arrival-screen{background:linear-gradient(160deg,#0a2e1a,#1a4a2e)}
+
+    /* ── DRIVER TRACKING ── */
+    .tracking-screen{background:linear-gradient(160deg,#0d1f2d,#1a3545)}
+    .tracking-header{padding:2rem 1.5rem 1rem;text-align:center;color:white}
+    .tracking-header .th-eyebrow{font-size:.62rem;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.5rem}
+    .tracking-header h2{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300}
+    #tracking-map{height:320px;margin:0 1rem;border-radius:12px;border:1px solid rgba(255,255,255,.1)}
+    .driver-card{margin:1rem 1.5rem;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:1.2rem 1.4rem;color:white}
+    .dc-row{display:flex;justify-content:space-between;align-items:flex-start}
+    .dc-name{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:300}
+    .dc-vehicle{font-size:.75rem;color:rgba(255,255,255,.5);margin-top:.15rem}
+    .dc-phone-btn{background:var(--sea);color:white;border:none;padding:.5rem 1rem;border-radius:20px;font-size:.75rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;text-decoration:none;white-space:nowrap}
+    .dc-phone-btn:hover{background:var(--sea-light)}
+    .dc-waiting{font-size:.8rem;color:rgba(255,255,255,.6);margin-top:.75rem;line-height:1.6;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.1)}
+    .loc-pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:.35rem;animation:pulse 1.8s ease infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+    .phone-confirm-box{margin:0 1.5rem 1rem;background:rgba(196,147,63,.12);border:1px solid rgba(196,147,63,.3);border-radius:12px;padding:1.25rem 1.4rem;color:white}
+    .pcb-title{font-size:.85rem;font-weight:600;margin-bottom:.5rem}
+    .pcb-sub{font-size:.78rem;color:rgba(255,255,255,.6);line-height:1.5;margin-bottom:.85rem}
+    .pcb-input-row{display:flex;gap:.5rem}
+    .pcb-input-row input{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:white;padding:.55rem .8rem;border-radius:8px;font-size:.85rem;font-family:'Raleway',sans-serif}
+    .pcb-input-row input::placeholder{color:rgba(255,255,255,.35)}
+    .pcb-input-row input:focus{outline:none;border-color:var(--gold)}
+    .pcb-btn{background:var(--gold);color:white;border:none;padding:.55rem 1.1rem;border-radius:8px;font-size:.78rem;cursor:pointer;white-space:nowrap}
+
+    /* ── GPS PERMISSION BANNER ── */
+    .gps-banner{margin:0 1.5rem 1rem;background:rgba(220,38,38,.12);border:1px solid rgba(220,38,38,.3);border-radius:12px;padding:1.2rem 1.4rem;color:white;font-size:.8rem;line-height:1.6}
+    .gps-banner h4{font-size:.9rem;margin-bottom:.4rem;color:#fca5a5}
+    .gps-banner .gps-steps{margin-top:.7rem;padding-left:1rem}
+    .gps-banner .gps-steps li{margin-bottom:.25rem;color:rgba(255,255,255,.7)}
+    .gps-banner .gps-btn{margin-top:.75rem;background:rgba(255,255,255,.15);color:white;border:1px solid rgba(255,255,255,.25);padding:.45rem 1rem;border-radius:8px;font-size:.75rem;cursor:pointer;font-family:'Raleway',sans-serif}
+
+    /* ── POST ARRIVAL (Event Mode) ── */
+    .event-mode-screen{background:var(--white)}
+    .em-header{background:linear-gradient(135deg,var(--sea),#1a4e5a);color:white;padding:3rem 2rem 4rem;text-align:center;position:relative}
+    .em-header h2{font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:300;margin-bottom:.5rem}
+    .em-header p{font-size:.82rem;color:rgba(255,255,255,.65);letter-spacing:.12em;text-transform:uppercase}
+    .em-wave{position:absolute;bottom:-2px;left:0;width:100%}
+    .em-body{padding:2rem 1.5rem;max-width:760px;margin:0 auto}
+
+    /* Event agenda cards */
+    .agenda-card{border:1px solid var(--sand-mid);padding:1.5rem;margin-bottom:1rem;border-radius:8px;display:flex;gap:1.2rem;align-items:flex-start;transition:box-shadow .2s}
+    .agenda-card:hover{box-shadow:0 4px 20px rgba(42,110,124,.1)}
+    .agenda-card.next-up{border-color:var(--gold);background:#fffbf2}
+    .agenda-badge{background:var(--sea);color:white;border-radius:8px;padding:.5rem .75rem;text-align:center;min-width:52px;flex-shrink:0}
+    .ab-day{font-size:1.4rem;font-family:'Cormorant Garamond',serif;font-weight:300;line-height:1}
+    .ab-month{font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;opacity:.8}
+    .agenda-info{}
+    .ai-name{font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:var(--sea);margin-bottom:.2rem}
+    .ai-meta{font-size:.72rem;color:#6a5e54;display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.3rem}
+    .ai-desc{font-size:.78rem;color:#6a5e54;line-height:1.5}
+    .next-up-badge{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;background:var(--gold);color:white;padding:.15rem .5rem;border-radius:10px;vertical-align:middle;margin-left:.4rem}
+
+    /* Event RSVP chips */
+    .event-rsvp-row{margin-top:.75rem;display:flex;gap:.5rem;flex-wrap:wrap}
+    .ev-rsvp-btn{padding:.3rem .75rem;border-radius:20px;font-size:.68rem;cursor:pointer;font-family:'Raleway',sans-serif;font-weight:600;border:none;transition:all .18s}
+    .ev-rsvp-yes{background:#dcfce7;color:#15803d}.ev-rsvp-yes:hover{background:#bbf7d0}
+    .ev-rsvp-no{background:#fee2e2;color:#b91c1c}.ev-rsvp-no:hover{background:#fecaca}
+    .ev-rsvp-confirmed{background:#dcfce7;color:#15803d;opacity:.7;cursor:default}
+    .ev-rsvp-declined{background:#fee2e2;color:#b91c1c;opacity:.7;cursor:default}
+
+    /* POI cards */
+    .poi-section{margin-top:2rem}
+    .poi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.75rem}
+    .poi-card{background:var(--sand);border:1px solid var(--sand-mid);border-radius:8px;padding:1rem;text-align:center}
+    .poi-card .poi-icon{font-size:1.8rem;margin-bottom:.4rem}
+    .poi-card .poi-name{font-weight:600;font-size:.8rem;color:var(--text);margin-bottom:.15rem}
+    .poi-card .poi-desc{font-size:.68rem;color:#6a5e54;line-height:1.4}
+    .poi-card .poi-link{font-size:.65rem;color:var(--sea);text-decoration:none;display:block;margin-top:.4rem}
+
+    /* ── FLIGHT FORM ── */
+    .flight-form-wrap{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:1.5rem;margin:1rem 1.5rem}
+    .flight-form-wrap h4{font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:white;margin-bottom:1rem}
+    .ff-field{margin-bottom:1rem}
+    .ff-field label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.45);display:block;margin-bottom:.3rem}
+    .ff-field input,.ff-field select{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:white;padding:.55rem .8rem;border-radius:8px;font-size:.85rem;font-family:'Raleway',sans-serif}
+    .ff-field input::placeholder{color:rgba(255,255,255,.25)}
+    .ff-field input:focus,.ff-field select:focus{outline:none;border-color:var(--gold)}
+    .ff-field select option{background:#1a3a4a;color:white}
+    .ff-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    .ff-btn{background:var(--gold);color:white;border:none;padding:.7rem 1.5rem;border-radius:8px;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'Raleway',sans-serif;width:100%;margin-top:.5rem}
+    .ff-btn:hover{opacity:.9}
+    .ff-add-leg{background:transparent;border:1px dashed rgba(255,255,255,.2);color:rgba(255,255,255,.5);padding:.5rem;border-radius:8px;font-size:.75rem;cursor:pointer;font-family:'Raleway',sans-serif;width:100%;margin-top:.5rem;transition:all .2s}
+    .ff-add-leg:hover{border-color:rgba(255,255,255,.4);color:rgba(255,255,255,.7)}
+
+    /* ── MOBILE ── */
+    @media(max-width:768px){
+      .topnav{padding:1rem}
+      .topnav-links button{font-size:.6rem;padding:.4rem .3rem}
+      .route-flow{flex-direction:column}
+      .route-arrow{padding:1rem 0;transform:rotate(90deg)}
+      .tl-item,.tl-item.right{padding:0 0 0 2.5rem;justify-content:flex-start}
+      .timeline::before{left:14px;transform:none}
+      .tl-dot{left:14px;transform:translateX(-50%)}
+      .tl-card{max-width:none}
+      .chatbot-container{width:calc(100% - 4rem);height:420px}
+      #tracking-map{height:260px}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ACCESS DENIED -->
+<div id="no-id-warning" class="access-denied" style="display:none">
+  <h2>Access Denied</h2>
+  <p>This invitation requires a valid ID.</p>
+  <p style="font-size:.85rem;opacity:.7;margin-top:1rem">Please use the personalized link you received.</p>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="main-content" style="display:none">
+
+  <!-- ══════════════════════════════════════════
+       PHASE SCREENS (shown instead of normal nav)
+  ══════════════════════════════════════════ -->
+
+  <!-- PHASE: IN TRANSIT — Flight Tracker -->
+  <div id="phase-transit" class="phase-screen flight-screen">
+    <div class="flight-header">
+      <div class="fh-eyebrow">Your journey to the wedding</div>
+      <h2 id="ft-greeting">Safe travels! ✈️</h2>
+    </div>
+    <div class="flight-progress-bar">
+      <div class="flight-progress-fill" id="ft-progress" style="width:0%"></div>
+    </div>
+    <div class="flight-legs" id="ft-legs">
+      <!-- rendered by JS -->
+    </div>
+    <div class="flight-countdown">
+      <div class="fc-label" id="fc-label">Time until next departure</div>
+      <div class="fc-time" id="fc-time">——</div>
+    </div>
+    <!-- Flight form if not filled yet -->
+    <div id="ft-form-wrap" class="flight-form-wrap">
+      <h4>✏️ Add your flight details</h4>
+      <div id="ft-legs-form">
+        <div class="flight-leg-entry" data-leg="0">
+          <div class="ff-row">
+            <div class="ff-field"><label>From</label><input type="text" placeholder="JFK" maxlength="4" style="text-transform:uppercase" class="leg-from"/></div>
+            <div class="ff-field"><label>To</label><input type="text" placeholder="BLR" maxlength="4" style="text-transform:uppercase" class="leg-to"/></div>
+          </div>
+          <div class="ff-row">
+            <div class="ff-field"><label>Departure</label><input type="datetime-local" class="leg-dep"/></div>
+            <div class="ff-field"><label>Arrival</label><input type="datetime-local" class="leg-arr"/></div>
+          </div>
+          <div class="ff-field"><label>Flight number (optional)</label><input type="text" placeholder="AA 202" class="leg-num"/></div>
+        </div>
+      </div>
+      <button class="ff-add-leg" onclick="addFlightLeg()">+ Add connection / layover</button>
+      <button class="ff-btn" onclick="saveFlightItinerary()">Save Flight Details</button>
+    </div>
+    <div style="padding:1rem 1.5rem 2rem;text-align:center">
+      <button onclick="switchToNormalMode()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:.7rem;cursor:pointer;letter-spacing:.1em;text-transform:uppercase">View invitation →</button>
+    </div>
+  </div>
+
+  <!-- PHASE: ARRIVED — Welcome to India / Phone confirm + Driver -->
+  <div id="phase-arrived" class="phase-screen arrival-screen">
+    <div style="padding:2.5rem 1.5rem;color:white;text-align:center">
+      <div style="font-size:2.5rem;margin-bottom:.75rem">🇮🇳</div>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:300;margin-bottom:.5rem">Welcome to India</h2>
+      <p id="ar-name-greeting" style="font-size:.85rem;color:rgba(255,255,255,.55);letter-spacing:.15em;text-transform:uppercase;margin-bottom:2rem"></p>
+    </div>
+
+    <!-- Phone confirm (international only) -->
+    <div id="phone-confirm-box" class="phone-confirm-box">
+      <div class="pcb-title">📱 Is this still your number?</div>
+      <div class="pcb-sub" id="pcb-sub-text">Staying in touch is very important. Some guests change SIM or eSIM on arrival in India. If your number has changed, just type the new one and hit Send.</div>
+      <div class="pcb-input-row">
+        <input type="tel" id="pcb-phone" placeholder="Your current number"/>
+        <button class="pcb-btn" onclick="confirmPhone()">Send ✓</button>
+      </div>
+      <div id="pcb-status" style="font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.4rem"></div>
+    </div>
+
+    <!-- GPS permission -->
+    <div id="gps-permission-box" style="display:none" class="gps-banner">
+      <!-- filled by JS based on device / permission state -->
+    </div>
+
+    <!-- Driver info -->
+    <div id="arrival-driver-card" class="driver-card" style="display:none">
+      <div class="dc-row">
+        <div>
+          <div class="dc-name" id="adc-name">—</div>
+          <div class="dc-vehicle" id="adc-vehicle">—</div>
+        </div>
+        <a id="adc-phone-btn" href="#" class="dc-phone-btn">📞 Call</a>
+      </div>
+      <div class="dc-waiting" id="adc-waiting">Your driver is waiting for you.</div>
+    </div>
+
+    <!-- Tracking map (shows when GPS available for both) -->
+    <div id="arrival-map-wrap" style="display:none">
+      <div id="arrival-map" style="height:280px;margin:0 1rem 1rem;border-radius:12px;border:1px solid rgba(255,255,255,.1)"></div>
+    </div>
+
+    <div style="padding:1rem 1.5rem 2rem;text-align:center">
+      <button onclick="switchToNormalMode()" style="background:none;border:none;color:rgba(255,255,255,.25);font-size:.7rem;cursor:pointer;letter-spacing:.1em;text-transform:uppercase">View invitation →</button>
+    </div>
+  </div>
+
+  <!-- PHASE: EVENT ACTIVE — Driver tracking (en route) -->
+  <div id="phase-tracking" class="phase-screen tracking-screen">
+    <div class="tracking-header">
+      <div class="th-eyebrow">On your way</div>
+      <h2 id="tracking-title">Your driver is coming</h2>
+    </div>
+
+    <div id="gps-tracking-banner" class="gps-banner" style="display:none"></div>
+
+    <div id="tracking-map"></div>
+
+    <div class="driver-card" id="tracking-driver-card">
+      <div class="dc-row">
+        <div>
+          <div class="dc-name" id="tdc-name">—</div>
+          <div class="dc-vehicle" id="tdc-vehicle">—</div>
+        </div>
+        <a id="tdc-phone-btn" href="#" class="dc-phone-btn">📞 Call</a>
+      </div>
+      <div class="dc-waiting" id="tdc-waiting"></div>
+    </div>
+
+    <div style="padding:1rem 1.5rem 2rem;text-align:center">
+      <button onclick="switchToNormalMode()" style="background:none;border:none;color:rgba(255,255,255,.25);font-size:.7rem;cursor:pointer;letter-spacing:.1em;text-transform:uppercase">View invitation →</button>
+    </div>
+  </div>
+
+  <!-- PHASE: POST ARRIVAL — Event mode -->
+  <div id="phase-event-mode" class="phase-screen event-mode-screen">
+    <div class="em-header">
+      <h2 id="em-greeting">Welcome to the celebration</h2>
+      <p id="em-sub">Tanvi &amp; Justin · Mangalore 2026</p>
+      <svg class="em-wave" viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#fffdf8"/></svg>
+    </div>
+    <div class="em-body">
+      <!-- Upcoming events agenda -->
+      <div id="em-events-wrap">
+        <p class="section-eyebrow">Your Event Schedule</p>
+        <div id="em-events-list">
+          <p style="color:#6a5e54;font-size:.85rem">Loading events…</p>
+        </div>
+      </div>
+
+      <!-- Places of interest -->
+      <div class="poi-section">
+        <p class="section-eyebrow" style="margin-top:2rem">Places to explore in Mangalore</p>
+        <div class="poi-grid" id="em-poi-grid">
+          <p style="color:#6a5e54;font-size:.85rem">Loading places…</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:1.5rem;text-align:center">
+      <button onclick="switchToNormalMode()" style="background:none;border:none;color:var(--muted);font-size:.75rem;cursor:pointer;color:var(--sea);letter-spacing:.1em;text-transform:uppercase">Full invitation →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       NORMAL INVITATION (nav + pages)
+  ══════════════════════════════════════════ -->
+  <div id="normal-invitation" style="display:none">
+    <nav class="topnav">
+      <a class="topnav-brand" onclick="showSection('home')">Tanvi <span style="font-style:italic;opacity:.7">&amp;</span> Justin</a>
+      <div class="topnav-links">
+        <button id="nav-home"   class="active-nav" onclick="showSection('home')">Home</button>
+        <button id="nav-events" onclick="showSection('events')">Events</button>
+        <button id="nav-travel" onclick="showSection('travel')">Travel</button>
+        <button id="nav-flight" onclick="showSection('flight')">My Flight</button>
+        <button id="nav-faq"    onclick="showSection('faq')">FAQ</button>
+        <button id="nav-rsvp"   onclick="showSection('rsvp')">RSVP</button>
+      </div>
+    </nav>
+
+    <!-- HOME -->
+    <div id="home" class="page-section active">
+      <section class="hero">
+        <div class="hero-bg" id="hero-bg-el"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="hero-eyebrow" id="hero-eyebrow-text">We're getting married</p>
+          <h1 class="hero-names">Tanvi <span class="amp">&amp;</span> Justin</h1>
+          <div class="hero-divider"></div>
+          <p class="hero-date">December 27–30, 2026</p>
+          <p class="hero-location">📍 Manthan Beach Resort · Mangalore, India</p>
+          <div class="hero-cta">
+            <button class="btn-sea" onclick="showSection('rsvp')">RSVP Now</button>
+            <button class="btn-outline-sand" onclick="showSection('events')">Event Details</button>
+          </div>
+        </div>
+        <svg class="hero-wave" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,60 C240,100 480,100 720,60 C960,20 1200,20 1440,60 L1440,120 L0,120 Z" fill="#fffdf8"/></svg>
+      </section>
+
+      <div class="countdown-bar">
+        <div class="countdown-inner">
+          <div class="countdown-item"><div class="countdown-num" id="cd-days">00</div><div class="countdown-label">Days</div></div>
+          <div class="countdown-item"><div class="countdown-num" id="cd-hours">00</div><div class="countdown-label">Hours</div></div>
+          <div class="countdown-item"><div class="countdown-num" id="cd-mins">00</div><div class="countdown-label">Minutes</div></div>
+          <div class="countdown-item"><div class="countdown-num" id="cd-secs">00</div><div class="countdown-label">Seconds</div></div>
+        </div>
+      </div>
+
+      <section style="padding:6rem 2rem">
+        <div class="container-custom">
+          <div class="row align-items-center g-5">
+            <div class="col-md-6 reveal">
+              <p class="section-eyebrow">Our Story</p>
+              <h2 class="section-title">From New York<br/>to Mangalore</h2>
+              <div class="section-divider"></div>
+              <p style="line-height:1.85;color:#5a4e44;font-size:.95rem">It started with a shared love for adventure, deep conversations, and the perfect cup of coffee. From the bustling streets of Manhattan to the quiet shores of Karnataka, our journey has been one of bringing two worlds together.</p>
+            </div>
+            <div class="col-md-6 reveal">
+              <div style="background:var(--sand);padding:2rem;border-radius:4px;text-align:center">
+                <p style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-style:italic;color:#5a4e44;line-height:1.8">"In all the world, there is no heart for me like yours."</p>
+                <p style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-top:.75rem">— Maya Angelou</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Trivia Section -->
+      <section style="padding:5rem 2rem;background:var(--sand)">
+        <div class="container-custom" style="max-width:700px">
+          <p class="section-eyebrow text-center">How well do you know us?</p>
+          <h2 class="section-title text-center" style="margin-bottom:2rem">Wedding Trivia</h2>
+          <div id="quizArea">
+            <div class="score-bar-wrap">
+              <div id="scoreDisplay" class="score-num-display">0 / 0</div>
+              <div class="score-prog-track"><div class="score-prog-fill" id="progFill"></div></div>
+            </div>
+            <div class="q-card">
+              <span class="q-category-badge" id="qBadge">Category</span>
+              <div class="q-counter" id="qNum">Question 1 of ?</div>
+              <div class="q-text" id="qText">Loading…</div>
+              <div class="q-options" id="qOptions"></div>
+              <div class="fact-box" id="factBox">
+                <div class="fact-label">Fun Fact</div>
+                <div class="fact-text" id="factText"></div>
+              </div>
+              <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next Question →</button>
+            </div>
+          </div>
+          <div class="end-screen" id="endScreen">
+            <div class="end-score" id="endScore"><span>0</span> <small style="font-size:2rem;opacity:.5">pts</small></div>
+            <p style="margin-top:1rem;color:#6a5e54">Thanks for playing!</p>
+            <button class="btn-sea mt-3" onclick="restartQuiz()">Play Again</button>
+          </div>
+        </div>
+      </section>
+    </div><!-- /home -->
+
+    <!-- EVENTS -->
+    <div id="events" class="page-section">
+      <div style="background:linear-gradient(rgba(42,110,124,.75),rgba(42,110,124,.75)) center/cover;padding:8rem 2rem;text-align:center;color:white;position:relative;background-color:#1a4e5a">
+        <p class="hero-eyebrow">Four Days of Celebration</p>
+        <h1 class="hero-names">The Events</h1>
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:-2px;left:0;width:100%"><path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#fffdf8"/></svg>
+      </div>
+      <section style="padding:5rem 2rem">
+        <div class="container-custom">
+          <!-- Dynamic events from Firestore -->
+          <div id="events-from-db" class="row g-4 mb-5"></div>
+          <!-- Timeline from DB -->
+          <h3 class="section-title text-center mb-5" style="margin-top:2rem">Weekend at a Glance</h3>
+          <div class="timeline" id="events-timeline"></div>
+          <div class="text-center mt-4">
+            <div class="cal-add-wrap">
+              <button class="cal-add-btn" onclick="toggleCalDropdown()">+ Add to Calendar</button>
+              <div class="cal-dropdown" id="calDropdown">
+                <a href="#" onclick="addToGoogleCalendar();return false">Google Calendar</a>
+                <a href="#" onclick="downloadIcs();return false">Download (.ics)</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div><!-- /events -->
+
+    <!-- TRAVEL -->
+    <div id="travel" class="page-section">
+      <div style="background:linear-gradient(rgba(42,110,124,.7),rgba(42,110,124,.7)),url('https://images.unsplash.com/photo-1506461883276-594a12b11cf3?w=1400&q=80') center/cover;padding:8rem 2rem;text-align:center;color:white;position:relative">
+        <p class="hero-eyebrow">Getting There</p>
+        <h1 class="hero-names">Travel &amp; Venue</h1>
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:-2px;left:0;width:100%"><path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#fffdf8"/></svg>
+      </div>
+      <section style="padding:5rem 2rem">
+        <div class="container-custom">
+          <div class="row g-5 align-items-center mb-5">
+            <div class="col-md-6 reveal">
+              <p class="section-eyebrow">The Wedding Location</p>
+              <h2 class="section-title">Manthan<br/><em>Beach Resort, Mangalore</em></h2>
+              <div class="section-divider"></div>
+              <p class="mb-4" style="line-height:1.8;color:#5a4e44">Nestled on the pristine shores of the Arabian Sea, Manthan Beach Resort offers a serene backdrop for our celebrations.</p>
+              <div class="travel-pill-row">
+                <div class="travel-pill">📍 Mangalore, India</div>
+                <div class="travel-pill">🏖️ Beachfront</div>
+                <div class="travel-pill">Dec 27–30, 2026</div>
+              </div>
+            </div>
+            <div class="col-md-6 reveal">
+              <div style="background:var(--sand);height:280px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.5rem;color:var(--sea)">
+                <div style="font-size:2.5rem">🏖️</div>
+                <div style="font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;opacity:.5">Manthan Beach Resort</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-5 pt-4 reveal">
+            <h3 class="section-title text-center mb-4">Getting There</h3>
+            <div class="route-flow">
+              <div class="route-step"><span class="route-step-label">Your Home City</span><span class="route-step-icon">✈️</span><h4 class="route-step-title">Fly to Bangalore</h4><p class="route-step-desc">Most international flights connect through Kempegowda International Airport (BLR).</p></div>
+              <div class="route-arrow"><div class="route-arrow-line"></div><div class="route-arrow-tip">✈️</div><span class="route-arrow-time">30 min</span></div>
+              <div class="route-step"><span class="route-step-label">Domestic Hop</span><span class="route-step-icon">🛫</span><h4 class="route-step-title">Fly to Mangalore</h4><p class="route-step-desc">Quick 30-min domestic flight from BLR to Mangalore (IXE).</p></div>
+              <div class="route-arrow"><div class="route-arrow-line"></div><div class="route-arrow-tip">🚗</div><span class="route-arrow-time">45 min</span></div>
+              <div class="route-step highlight"><span class="route-step-label">You're here!</span><span class="route-step-icon">🏨</span><h4 class="route-step-title">Manthan Beach Resort</h4><p class="route-step-desc">~30 km from airport. We coordinate complimentary pickups.</p></div>
+            </div>
+            <div class="time-note">⏰ <strong>India is 10.5 hours ahead of EST.</strong> We strongly recommend arriving a few days before December 27.</div>
+          </div>
+          <div class="row g-4 mt-4">
+            <div class="col-md-4 reveal"><div class="tip-card"><span class="tip-icon">🛂</span><div class="tip-content"><h6>Visa:</h6><p>US citizens need an Indian e-Visa (~$25–80). Apply at indianvisaonline.gov.in — 3–5 business days processing.</p></div></div></div>
+            <div class="col-md-4 reveal"><div class="tip-card"><span class="tip-icon">📱</span><div class="tip-content"><h6>Connectivity:</h6><p>Get an eSIM via Airalo or Holafly before boarding. Download WhatsApp for the weekend.</p></div></div></div>
+            <div class="col-md-4 reveal"><div class="tip-card"><span class="tip-icon">💵</span><div class="tip-content"><h6>Currency:</h6><p>Indian Rupee (INR). Exchange at the airport. $100–200 USD cash is a comfortable buffer.</p></div></div></div>
+            <div class="col-md-4 reveal"><div class="tip-card"><span class="tip-icon">☀️</span><div class="tip-content"><h6>Weather:</h6><p>December in coastal Karnataka: 75–90°F (24–32°C), low humidity, gentle sea breeze.</p></div></div></div>
+            <div class="col-md-4 reveal"><div class="tip-card"><span class="tip-icon">🛌</span><div class="tip-content"><h6>Accommodation:</h6><p>Rooms reserved at Manthan Beach Resort for all guests. No booking needed from your end!</p></div></div></div>
+            <div class="col-md-4 reveal"><div class="tip-card"><span class="tip-icon">💧</span><div class="tip-content"><h6>Water:</h6><p>Stick to bottled water only, including for brushing teeth. Widely available and inexpensive.</p></div></div></div>
+          </div>
+        </div>
+      </section>
+    </div><!-- /travel -->
+
+    <!-- FLIGHT -->
+    <div id="flight" class="page-section">
+      <div style="background:linear-gradient(160deg,#0d1b2a,#1a3a4a);padding:5rem 2rem;text-align:center;color:white;position:relative">
+        <p class="hero-eyebrow" style="color:rgba(255,255,255,.5)">Your Journey</p>
+        <h1 class="hero-names">My Flight</h1>
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:-2px;left:0;width:100%"><path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#fffdf8"/></svg>
+      </div>
+      <section style="padding:4rem 2rem">
+        <div class="container-custom" style="max-width:680px">
+          <div id="flight-view-wrap"></div>
+          <div style="background:var(--sand);padding:2rem;border-radius:8px;margin-top:2rem">
+            <h4 style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--sea);margin-bottom:1.25rem">✏️ Update flight details</h4>
+            <div id="flight-edit-form">
+              <div id="flight-edit-legs"></div>
+              <button class="ff-add-leg" style="background:none;border:1px dashed var(--sand-mid);color:var(--sea);padding:.5rem;width:100%;cursor:pointer;border-radius:6px;font-size:.75rem;font-family:'Raleway',sans-serif;margin-top:.5rem" onclick="addFlightLeg('edit')">+ Add connection</button>
+              <button class="btn-sea" style="margin-top:1rem;width:100%" onclick="saveFlightItinerary()">Save Flight Details</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div><!-- /flight -->
+
+    <!-- FAQ -->
+    <div id="faq" class="page-section">
+      <div style="background:linear-gradient(rgba(123,79,58,.6),rgba(123,79,58,.6)),url('https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=1400&q=80') center/cover;padding:8rem 2rem;text-align:center;color:white;position:relative">
+        <p class="hero-eyebrow">FAQ</p>
+        <h1 class="hero-names">Frequently Asked</h1>
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:-2px;left:0;width:100%"><path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#fffdf8"/></svg>
+      </div>
+      <section style="padding:5rem 2rem">
+        <div class="container-custom" style="max-width:800px">
+          <div class="faq-list reveal">
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">What is the dress code? <span>+</span></div><div class="faq-a"><strong>Haldi:</strong> Yellows and oranges.<br/><strong>Mehendi:</strong> Relaxed, vibrant.<br/><strong>Sangeet:</strong> Bold and festive — lehengas, anarkalis for women; kurta for men.<br/><strong>Wedding:</strong> Traditional Indian attire preferred.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Are children welcome? <span>+</span></div><div class="faq-a">Yes! Please let us know if you're bringing kids so we can arrange seating.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">What about dietary restrictions? <span>+</span></div><div class="faq-a">Please mention restrictions in your RSVP. We'll make sure to accommodate.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Do US citizens need a visa? <span>+</span></div><div class="faq-a">Yes — Indian e-Visa at indianvisaonline.gov.in. Processing 3–5 days; apply at least 2–4 weeks early.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">Is India safe to visit? <span>+</span></div><div class="faq-a">Yes. Mangalore and Bangalore are welcoming, family-oriented cities. US State Dept rates India Level 2: Exercise Normal Precautions.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)">What's the weather like in December? <span>+</span></div><div class="faq-a">Warm sunny days 75–90°F (24–32°C), low humidity, very little rain. Evenings are beautifully cool.</div></div>
+          </div>
+        </div>
+      </section>
+    </div><!-- /faq -->
+
+    <!-- RSVP -->
+    <div id="rsvp" class="page-section">
+      <div style="background:linear-gradient(rgba(42,110,124,.75),rgba(42,110,124,.75)),url('https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=1400&q=80') center/cover;padding:8rem 2rem;text-align:center;color:white;position:relative">
+        <p class="hero-eyebrow">Your Response</p>
+        <h1 class="hero-names">RSVP</h1>
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:-2px;left:0;width:100%"><path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#fffdf8"/></svg>
+      </div>
+      <section style="padding:5rem 2rem">
+        <div class="container-custom" style="max-width:640px">
+          <div class="rsvp-card reveal">
+            <div id="rsvpForm">
+              <p class="text-center mb-4" style="font-size:.88rem;color:#6a5e54">Please respond by <strong>May 1, 2026</strong></p>
+              <div class="mb-4"><label class="form-label">Full Name *</label><input type="text" id="fullName" class="form-control-custom" readonly/></div>
+              <div class="row mb-4">
+                <div class="col-md-6"><label class="form-label">Email</label><input type="email" id="email" class="form-control-custom" placeholder="your@email.com"/></div>
+                <div class="col-md-6"><label class="form-label">Phone</label><input type="tel" id="phone" class="form-control-custom" placeholder="+1..."/></div>
+              </div>
+              <div class="mb-4">
+                <label class="form-label">Will you attend? *</label>
+                <div class="attendance-options">
+                  <label class="att-opt"><input type="radio" name="attendance" value="yes" onchange="updateAttendance()"/> Yes, I'll be there! 🎉</label>
+                  <label class="att-opt"><input type="radio" name="attendance" value="no" onchange="updateAttendance()"/> Unable to attend</label>
+                </div>
+              </div>
+              <div id="attendingDetails" style="display:none">
+                <div class="mb-4"><label class="form-label">Number of Guests</label><select id="guests" class="form-control-custom"><option value="1">1 – Just me</option><option value="2">2 – Myself + 1</option><option value="3">3 – Myself + 2</option><option value="4">4 – Myself + 3</option></select></div>
+                <div class="mb-4"><label class="form-label">Dietary Restrictions</label><input type="text" id="dietary" class="form-control-custom" placeholder="e.g. vegetarian, nut allergy..."/></div>
+              </div>
+              <div class="mb-4"><label class="form-label">Message (Optional)</label><textarea id="message" class="form-control-custom" rows="2"></textarea></div>
+              <button class="btn-sea w-100" id="btn-submit" onclick="submitRSVP()">Submit RSVP</button>
+            </div>
+            <div id="success-message" style="display:none;text-align:center;padding:2rem 0">
+              <div style="font-size:3rem;margin-bottom:1rem">✨</div>
+              <h3>Thank You!</h3>
+              <p style="color:#6a5e54;line-height:1.7">Your RSVP has been received.</p>
+              <div style="margin-top:1.5rem">
+                <button onclick="toggleEditContact()" style="background:none;border:none;color:var(--sea);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:'Raleway',sans-serif">✏️ Update my info</button>
+                <div id="edit-contact-form" style="display:none;margin-top:1rem;text-align:left">
+                  <div class="mb-3"><label class="form-label">Email</label><input type="email" id="edit-email" class="form-control-custom"/></div>
+                  <div class="mb-3"><label class="form-label">Phone</label><input type="tel" id="edit-phone" class="form-control-custom"/></div>
+                  <button class="btn-sea" onclick="saveContactInfo()">Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div><!-- /rsvp -->
+
+  </div><!-- /normal-invitation -->
+
+  <!-- CHATBOT FAB -->
+  <button class="chatbot-btn" onclick="toggleChatbot()" style="position:fixed;bottom:2rem;right:2rem;z-index:1000">
+    💬
+    <span id="chat-badge" style="display:none">1</span>
+  </button>
+  <div class="chatbot-container" id="chatbot" style="display:none;flex-direction:column">
+    <div class="chatbot-header">
+      <h4 id="chatbot-title">Message Us 💕</h4>
+      <button onclick="toggleChatbot()" style="background:none;border:none;color:white;font-size:1.2rem;cursor:pointer">✕</button>
+    </div>
+    <div class="chatbot-messages" id="chatbot-messages">
+      <div class="chat-msg bot">Hi! 👋 Send us a message and we'll get back to you shortly.</div>
+    </div>
+    <div class="chatbot-input">
+      <input type="text" id="chatbot-input" placeholder="Type a message…" onkeypress="if(event.key==='Enter')sendChatMessage()"/>
+      <button onclick="sendChatMessage()">Send</button>
+    </div>
+  </div>
+
+</div><!-- /main-content -->
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="notifications.js"></script>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// FIREBASE
+// ════════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyCoXMPGLlPn56oKYnWX6iHuJOlJYPlyUV8",
+  authDomain: "tanvi-and-justin.firebaseapp.com",
+  projectId: "tanvi-and-justin",
+  storageBucket: "tanvi-and-justin.firebasestorage.app",
+  messagingSenderId: "418808308001",
+  appId: "1:418808308001:web:730d002e16f82327f5de60"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
+const params   = new URLSearchParams(location.search);
+const guestId  = params.get('guestId');
+let guestData  = {};
+let flightLegs = [];       // [{ from, to, dep, arr, flightNum }]
+let _driverUnsub    = null;
+let _trackingMap    = null;
+let _arrivalMap     = null;
+let _driverMarker   = null;
+let _guestMarker    = null;
+let _gpsWatchId     = null;
+let _currentPhase   = null;  // local effective phase
+let _normalMode     = false; // user manually switched to see full invitation
+let allEvents       = [];
+let allPOIs         = [];
+
+// ════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async () => {
+  if (!guestId) {
+    document.getElementById('no-id-warning').style.display = 'flex';
+    return;
+  }
+  document.getElementById('main-content').style.display = 'block';
+
+  await loadGuestData();
+  await loadFlightItinerary();
+  initCountdown();
+  initReveal();
+  recordInvitationOpened();
+  watchGlobalPhase();
+  watchAdminMessages();
+  loadEventsForInvitation();
+  loadPOIsForInvitation();
+  requestLocationPermission();
+  if (typeof initGuestNotifications === 'function') initGuestNotifications(db, guestId);
+});
+
+// ════════════════════════════════════════════════════════════
+// GUEST DATA
+// ════════════════════════════════════════════════════════════
+async function loadGuestData() {
+  try {
+    const doc = await db.collection('guests').doc(guestId).get();
+    if (!doc.exists) return;
+    guestData = doc.data();
+
+    const fn = document.getElementById('fullName'); if(fn) fn.value = guestData.name || '';
+    const em = document.getElementById('email');    if(em) em.value = guestData.email || '';
+    const ph = document.getElementById('phone');    if(ph && guestData.phone) ph.value = guestData.phone;
+
+    // Hide flight tab for local guests
+    if (guestData.guestType === 'local') {
+      const navFlight = document.getElementById('nav-flight');
+      if (navFlight) navFlight.style.display = 'none';
+    }
+
+    const firstName = (guestData.name || '').split(' ')[0];
+    document.getElementById('ft-greeting').textContent = `Safe travels, ${firstName}! ✈️`;
+    document.getElementById('ar-name-greeting').textContent = firstName;
+    document.getElementById('em-greeting').textContent = `Welcome, ${firstName}!`;
+    const ct = document.getElementById('chatbot-title'); if(ct) ct.textContent = `Hi ${firstName}! 👋`;
+
+    // Pre-fill phone confirm box
+    const pcbPhone = document.getElementById('pcb-phone');
+    if (pcbPhone && guestData.phone) pcbPhone.value = guestData.phone;
+
+    // RSVP state
+    if (guestData.attendance) {
+      const radio = document.querySelector(`input[name="attendance"][value="${guestData.attendance}"]`);
+      if (radio) { radio.checked = true; updateAttendance(); }
+      if (guestData.submittedAt) {
+        const rf = document.getElementById('rsvpForm');
+        const sm = document.getElementById('success-message');
+        if(rf) rf.style.display = 'none';
+        if(sm) sm.style.display = 'block';
+      }
+    }
+  } catch(e) { console.error('loadGuest:', e); }
+}
+
+async function recordInvitationOpened() {
+  try {
+    await db.collection('guests').doc(guestId).update({
+      invitationOpenedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      invitationOpened: true
+    });
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════════
+// GLOBAL PHASE WATCHER
+// ════════════════════════════════════════════════════════════
+function watchGlobalPhase() {
+  db.collection('liveOps').doc('phase').onSnapshot(doc => {
+    const adminPhase = doc.exists ? (doc.data().phase || 'pre_travel') : 'pre_travel';
+    resolveAndApplyPhase(adminPhase);
+  }, () => resolveAndApplyPhase('pre_travel'));
+}
+
+/**
+ * Decide effective phase:
+ * - Admin can force any phase via liveOps/phase
+ * - But we also auto-upgrade based on flight data + GPS
+ * - Local guests skip transit/arrived phases
+ */
+function resolveAndApplyPhase(adminPhase) {
+  if (_normalMode) return; // user manually browsing
+
+  const isLocal = guestData.guestType === 'local';
+  let phase = adminPhase;
+
+  if (!isLocal) {
+    // Auto-upgrade: if admin says pre_travel but flights have departed → in_transit
+    if (phase === 'pre_travel' && flightLegs.length > 0) {
+      const firstDep = new Date(flightLegs[0].dep);
+      if (Date.now() > firstDep.getTime()) phase = 'in_transit';
+    }
+    // Auto-upgrade: if all flights landed → arrived
+    if (phase === 'in_transit' && flightLegs.length > 0) {
+      const lastArr = new Date(flightLegs[flightLegs.length - 1].arr);
+      if (Date.now() > lastArr.getTime()) phase = 'arrived';
+    }
+    // GPS-based upgrade: if arrived and GPS puts them within 80km of Mangalore → arrived
+    // (GPS check runs async, triggered separately)
+  }
+
+  // Local guests: skip to arrived/event_active/post_event
+  if (isLocal && (phase === 'pre_travel' || phase === 'in_transit')) {
+    phase = 'arrived';
+  }
+
+  if (phase === _currentPhase) return;
+  _currentPhase = phase;
+  applyPhase(phase);
+}
+
+function applyPhase(phase) {
+  // Hide all phase screens + normal invitation
+  ['phase-transit','phase-arrived','phase-tracking','phase-event-mode'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('active'); el.style.display = 'none'; }
+  });
+  document.getElementById('normal-invitation').style.display = 'none';
+
+  if (phase === 'in_transit') {
+    showPhaseScreen('phase-transit');
+    renderFlightTracker();
+    startFlightCountdown();
+  } else if (phase === 'arrived') {
+    showPhaseScreen('phase-arrived');
+    initArrivalScreen();
+  } else if (phase === 'event_active') {
+    // Check if guest has an assigned driver and they're en route
+    if (guestData.assignedDriverId && guestData.transportStatus !== 'delivered') {
+      showPhaseScreen('phase-tracking');
+      initTrackingScreen();
+    } else {
+      showPhaseScreen('phase-event-mode');
+      renderEventMode();
+    }
+  } else if (phase === 'post_event') {
+    showPhaseScreen('phase-event-mode');
+    renderEventMode();
+  } else {
+    // pre_travel — show normal invitation
+    document.getElementById('normal-invitation').style.display = 'block';
+  }
+}
+
+function showPhaseScreen(id) {
+  const el = document.getElementById(id);
+  if (el) { el.style.display = 'flex'; el.classList.add('active'); }
+}
+
+function switchToNormalMode() {
+  _normalMode = true;
+  ['phase-transit','phase-arrived','phase-tracking','phase-event-mode'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('active'); el.style.display = 'none'; }
+  });
+  document.getElementById('normal-invitation').style.display = 'block';
+  showSection('home');
+}
+
+// ════════════════════════════════════════════════════════════
+// GPS / LOCATION
+// ════════════════════════════════════════════════════════════
+const MANGALORE_LAT = 12.8698, MANGALORE_LNG = 74.8431;
+const INDIA_RADIUS_KM = 800; // Anywhere in India ≈ "arrived"
+
+function requestLocationPermission() {
+  if (!('geolocation' in navigator)) return;
+  if (!('permissions' in navigator)) {
+    // Old browser — just try
+    startWatchingLocation();
+    return;
+  }
+  navigator.permissions.query({ name: 'geolocation' }).then(result => {
+    if (result.state === 'granted') {
+      startWatchingLocation();
+    } else if (result.state === 'prompt') {
+      // Will ask on first use — start watching, browser will prompt
+      startWatchingLocation();
+    } else if (result.state === 'denied') {
+      // Show instructions
+      showGPSInstructions();
+    }
+    result.addEventListener('change', () => {
+      if (result.state === 'granted') startWatchingLocation();
+    });
+  }).catch(() => startWatchingLocation());
+}
+
+function startWatchingLocation() {
+  if (_gpsWatchId !== null) return;
+  _gpsWatchId = navigator.geolocation.watchPosition(
+    pos => onGPSUpdate(pos.coords.latitude, pos.coords.longitude),
+    err => {
+      if (err.code === err.PERMISSION_DENIED) showGPSInstructions();
+    },
+    { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 }
+  );
+}
+
+function onGPSUpdate(lat, lng) {
+  // Save to Firestore so driver / admin can see
+  db.collection('guests').doc(guestId).update({
+    currentLat: lat, currentLng: lng,
+    locationAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(()=>{});
+
+  // Check if they're in India → upgrade phase
+  const distToIndia = haversineKm(lat, lng, 20.5937, 78.9629); // center of India
+  if (distToIndia < INDIA_RADIUS_KM && (_currentPhase === 'in_transit' || _currentPhase === 'arrived')) {
+    // Trigger arrived if admin phase allows
+    if (_currentPhase === 'in_transit') {
+      db.collection('liveOps').doc('phase').get().then(doc => {
+        const adminPhase = doc.exists ? doc.data().phase : 'pre_travel';
+        // Only auto-promote if admin hasn't manually set a later phase
+        if (adminPhase === 'pre_travel' || adminPhase === 'in_transit') {
+          // Save GPS-arrived flag on guest
+          db.collection('guests').doc(guestId).update({ gpsArrivedIndia: true }).catch(()=>{});
+          _currentPhase = null; // force re-apply
+          resolveAndApplyPhase('arrived');
+        }
+      });
+    }
+  }
+
+  // Update live map if visible
+  updateLiveMaps(lat, lng);
+}
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function showGPSInstructions() {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isChrome = /chrome/i.test(navigator.userAgent) && !/edg/i.test(navigator.userAgent);
+
+  // Determine which GPS banner containers to fill
+  ['gps-permission-box','gps-tracking-banner'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = 'block';
+
+    if (isIOS) {
+      el.innerHTML = `
+        <h4>📍 Location access needed</h4>
+        <p>So your driver can find you, please enable location access:</p>
+        <ol class="gps-steps">
+          <li>Open <strong>Settings</strong> on your iPhone</li>
+          <li>Scroll down to <strong>Safari</strong> (or your browser)</li>
+          <li>Tap <strong>Location</strong> → set to <strong>Allow</strong></li>
+          <li>Come back and refresh this page</li>
+        </ol>
+        <button class="gps-btn" onclick="location.reload()">↻ Refresh after enabling</button>
+      `;
+    } else if (isChrome) {
+      el.innerHTML = `
+        <h4>📍 Location access needed</h4>
+        <p>So your driver can find you, please enable location:</p>
+        <ol class="gps-steps">
+          <li>Tap the <strong>🔒 lock icon</strong> in the address bar</li>
+          <li>Tap <strong>Permissions → Location → Allow</strong></li>
+          <li>Refresh the page</li>
+        </ol>
+        <button class="gps-btn" onclick="location.reload()">↻ Refresh after enabling</button>
+      `;
+    } else {
+      el.innerHTML = `
+        <h4>📍 Location access needed</h4>
+        <p>Please enable location in your browser settings for this site, then refresh.</p>
+        <button class="gps-btn" onclick="location.reload()">↻ Refresh</button>
+      `;
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// FLIGHT ITINERARY
+// ════════════════════════════════════════════════════════════
+async function loadFlightItinerary() {
+  try {
+    const snap = await db.collection('guests').doc(guestId)
+      .collection('flightItinerary').orderBy('order').get();
+    if (!snap.empty) {
+      flightLegs = snap.docs.map(d => d.data());
+      renderFlightEditForm();
+      renderFlightView();
+    } else {
+      renderFlightEditForm();
+    }
+  } catch(e) {}
+}
+
+let _legCount = 1;
+
+function addFlightLeg(context) {
+  _legCount++;
+  const legIdx = _legCount - 1;
+
+  if (context === 'edit') {
+    appendLegToForm('flight-edit-legs', legIdx);
+  } else {
+    appendLegToForm('ft-legs-form', legIdx);
+  }
+}
+
+function appendLegToForm(containerId, legIdx) {
+  const data = flightLegs[legIdx] || {};
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  const div = document.createElement('div');
+  div.className = 'flight-leg-entry';
+  div.dataset.leg = legIdx;
+  div.innerHTML = `
+    <div style="font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:.5rem;margin-top:${legIdx > 0 ? '1rem' : '0'}">
+      ${legIdx === 0 ? 'First flight' : 'Connection ' + legIdx}
+      ${legIdx > 0 ? `<button onclick="this.closest('.flight-leg-entry').remove()" style="background:none;border:none;color:rgba(255,100,100,.5);cursor:pointer;font-size:.9rem;float:right">✕</button>` : ''}
+    </div>
+    <div class="ff-row">
+      <div class="ff-field"><label>From</label><input type="text" placeholder="JFK" maxlength="4" style="text-transform:uppercase" class="leg-from" value="${data.from||''}"/></div>
+      <div class="ff-field"><label>To</label><input type="text" placeholder="BLR" maxlength="4" style="text-transform:uppercase" class="leg-to" value="${data.to||''}"/></div>
+    </div>
+    <div class="ff-row">
+      <div class="ff-field"><label>Departure</label><input type="datetime-local" class="leg-dep" value="${data.dep||''}"/></div>
+      <div class="ff-field"><label>Arrival</label><input type="datetime-local" class="leg-arr" value="${data.arr||''}"/></div>
+    </div>
+    <div class="ff-field"><label>Flight # (optional)</label><input type="text" placeholder="AA 202" class="leg-num" value="${data.flightNum||''}"/></div>
+  `;
+  wrap.appendChild(div);
+}
+
+function renderFlightEditForm() {
+  const container = document.getElementById('flight-edit-legs');
+  if (!container) return;
+  container.innerHTML = '';
+  _legCount = Math.max(1, flightLegs.length);
+  const legs = flightLegs.length > 0 ? flightLegs : [{}];
+  legs.forEach((_, i) => appendLegToForm('flight-edit-legs', i));
+}
+
+async function saveFlightItinerary() {
+  // Collect from whichever form is visible
+  const formId = _currentPhase === 'in_transit' ? 'ft-legs-form' : 'flight-edit-legs';
+  const entries = document.querySelectorAll(`#${formId} .flight-leg-entry`);
+  const legs = [];
+  entries.forEach((entry, i) => {
+    const from = entry.querySelector('.leg-from')?.value.trim().toUpperCase();
+    const to   = entry.querySelector('.leg-to')?.value.trim().toUpperCase();
+    const dep  = entry.querySelector('.leg-dep')?.value;
+    const arr  = entry.querySelector('.leg-arr')?.value;
+    const num  = entry.querySelector('.leg-num')?.value.trim();
+    if (from && to && dep && arr) {
+      legs.push({ from, to, dep, arr, flightNum: num || '', order: i });
+    }
+  });
+  if (!legs.length) { alert('Please add at least one flight leg.'); return; }
+
+  try {
+    // Delete old legs
+    const oldSnap = await db.collection('guests').doc(guestId).collection('flightItinerary').get();
+    const batch = db.batch();
+    oldSnap.docs.forEach(d => batch.delete(d.ref));
+    legs.forEach(leg => {
+      const ref = db.collection('guests').doc(guestId).collection('flightItinerary').doc();
+      batch.set(ref, leg);
+    });
+    await batch.commit();
+    flightLegs = legs;
+
+    if (_currentPhase === 'in_transit') {
+      renderFlightTracker();
+    }
+    renderFlightView();
+    alert('✅ Flight details saved!');
+  } catch(e) { alert('Error saving. Please try again.'); }
+}
+
+function renderFlightTracker() {
+  const container = document.getElementById('ft-legs');
+  if (!container) return;
+  container.innerHTML = '';
+  const now = Date.now();
+
+  // Show / hide form
+  const formWrap = document.getElementById('ft-form-wrap');
+  if (formWrap) formWrap.style.display = flightLegs.length === 0 ? 'block' : 'none';
+
+  flightLegs.forEach((leg, i) => {
+    const depTs = new Date(leg.dep).getTime();
+    const arrTs = new Date(leg.arr).getTime();
+    let status = 'upcoming';
+    if (now > arrTs) status = 'done';
+    else if (now > depTs) status = 'active';
+
+    const depStr = new Date(leg.dep).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    const arrStr = new Date(leg.arr).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    const depDate = new Date(leg.dep).toLocaleDateString([],{month:'short',day:'numeric'});
+
+    const div = document.createElement('div');
+    div.className = `flight-leg ${status}`;
+    div.innerHTML = `
+      <div class="fl-airports">
+        <div class="fl-route">
+          <span>${leg.from}</span>
+          <span class="fl-arrow">→</span>
+          <span>${leg.to}</span>
+        </div>
+        <div class="fl-meta">${leg.flightNum || ''} · ${depDate} · ${depStr} → ${arrStr}</div>
+      </div>
+      <div class="fl-status">
+        <span class="fl-badge ${status}">${status === 'done' ? '✓ Landed' : status === 'active' ? '✈ In flight' : '⏳ Upcoming'}</span>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  // Overall progress bar
+  if (flightLegs.length > 0) {
+    const totalStart = new Date(flightLegs[0].dep).getTime();
+    const totalEnd   = new Date(flightLegs[flightLegs.length - 1].arr).getTime();
+    const pct = Math.min(100, Math.max(0, ((now - totalStart) / (totalEnd - totalStart)) * 100));
+    const fill = document.getElementById('ft-progress');
+    if (fill) fill.style.width = pct + '%';
+  }
+}
+
+let _flightCountdownTimer = null;
+
+function startFlightCountdown() {
+  if (_flightCountdownTimer) clearInterval(_flightCountdownTimer);
+  function update() {
+    const now = Date.now();
+    const label = document.getElementById('fc-label');
+    const time  = document.getElementById('fc-time');
+    if (!label || !time) return;
+
+    // Find current or next leg
+    let targetTs = null, targetLabel = '';
+    for (const leg of flightLegs) {
+      const depTs = new Date(leg.dep).getTime();
+      const arrTs = new Date(leg.arr).getTime();
+      if (now < depTs) {
+        targetTs = depTs;
+        targetLabel = `Time until departure ${leg.from} → ${leg.to}`;
+        break;
+      } else if (now >= depTs && now < arrTs) {
+        targetTs = arrTs;
+        targetLabel = `Time until landing in ${leg.to}`;
+        break;
+      }
+    }
+    if (!targetTs) {
+      label.textContent = 'All flights completed 🎉';
+      time.textContent = '——';
+      clearInterval(_flightCountdownTimer);
+      return;
+    }
+    label.textContent = targetLabel;
+    const diff = targetTs - now;
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    time.textContent = `${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+  }
+  update();
+  _flightCountdownTimer = setInterval(update, 1000);
+}
+
+function renderFlightView() {
+  const wrap = document.getElementById('flight-view-wrap');
+  if (!wrap) return;
+  if (!flightLegs.length) {
+    wrap.innerHTML = '<p style="color:#6a5e54;font-size:.88rem">No flight details saved yet. Add them below.</p>';
+    return;
+  }
+  const now = Date.now();
+  let html = '<div style="display:flex;flex-direction:column;gap:.75rem">';
+  flightLegs.forEach((leg, i) => {
+    const depTs = new Date(leg.dep).getTime();
+    const arrTs = new Date(leg.arr).getTime();
+    let status = now > arrTs ? 'done' : now > depTs ? 'active' : 'upcoming';
+    const depFmt = new Date(leg.dep).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    const arrFmt = new Date(leg.arr).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    html += `
+      <div style="border:1px solid ${status==='active'?'var(--gold)':'var(--sand-mid)'};padding:1rem 1.25rem;border-radius:8px;background:${status==='active'?'#fffbf2':'var(--white)'}">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--sea)">${leg.from} → ${leg.to}</div>
+        <div style="font-size:.75rem;color:#6a5e54;margin-top:.2rem">${leg.flightNum ? leg.flightNum + ' · ' : ''}${depFmt} → ${arrFmt}</div>
+        <div style="margin-top:.4rem">
+          <span style="font-size:.65rem;font-weight:700;padding:.15rem .5rem;border-radius:10px;${status==='done'?'background:#dcfce7;color:#15803d':status==='active'?'background:#fef9c3;color:#854d0e':'background:#f1f5f9;color:#475569'}">${status==='done'?'✓ Completed':status==='active'?'✈ In progress':'⏳ Upcoming'}</span>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════
+// ARRIVAL SCREEN
+// ════════════════════════════════════════════════════════════
+function initArrivalScreen() {
+  // Load driver info
+  if (guestData.assignedDriverId) {
+    loadDriverInfo('arrival');
+  }
+  // Request GPS if not already
+  requestLocationPermission();
+}
+
+async function loadDriverInfo(context) {
+  try {
+    const doc = await db.collection('drivers').doc(guestData.assignedDriverId).get();
+    if (!doc.exists) return;
+    const driver = doc.data();
+
+    if (context === 'arrival') {
+      document.getElementById('arrival-driver-card').style.display = 'block';
+      document.getElementById('adc-name').textContent = driver.name;
+      document.getElementById('adc-vehicle').textContent = `${driver.vehicle || ''} · ${driver.plate || ''}`;
+      const phoneBtn = document.getElementById('adc-phone-btn');
+      phoneBtn.href = `tel:${driver.phone}`;
+      phoneBtn.textContent = `📞 ${driver.phone || 'Call'}`;
+
+      // Watch driver's waiting message
+      watchDriverWaitingMessage(driver, 'adc-waiting');
+
+      // Start watching driver + guest on arrival map
+      initArrivalMap(driver);
+    } else {
+      document.getElementById('tdc-name').textContent = driver.name;
+      document.getElementById('tdc-vehicle').textContent = `${driver.vehicle || ''} · ${driver.plate || ''}`;
+      const tBtn = document.getElementById('tdc-phone-btn');
+      tBtn.href = `tel:${driver.phone}`;
+      tBtn.textContent = `📞 ${driver.phone || 'Call'}`;
+      watchDriverWaitingMessage(driver, 'tdc-waiting');
+      initTrackingMap(driver);
+    }
+  } catch(e) { console.error('loadDriver:', e); }
+}
+
+function watchDriverWaitingMessage(driver, elId) {
+  // Watch driver's activeMessage field — driver sets this from chofer.html
+  db.collection('drivers').doc(guestData.assignedDriverId).onSnapshot(snap => {
+    if (!snap.exists) return;
+    const d = snap.data();
+    const el = document.getElementById(elId);
+    if (!el) return;
+
+    // If GPS available for both: just show status
+    if (d.lat && d.lng) {
+      el.innerHTML = `<span class="loc-pulse"></span> ${d.name} is ${d.tripStatus === 'en_route' ? 'on the way to pick you up' : 'waiting for you'}`;
+    } else if (d.waitingMessage) {
+      // Driver set a custom message like "I'm waiting outside Terminal 2, Exit B"
+      el.textContent = `📍 ${d.waitingMessage}`;
+    } else {
+      el.textContent = `${driver.name} will be waiting for you at the arrivals area.`;
+    }
+  }, () => {});
+}
+
+// ════════════════════════════════════════════════════════════
+// MAPS
+// ════════════════════════════════════════════════════════════
+function initArrivalMap(driver) {
+  if (!driver.lat && !driver.lng) return;
+  document.getElementById('arrival-map-wrap').style.display = 'block';
+
+  if (!_arrivalMap) {
+    _arrivalMap = L.map('arrival-map').setView([driver.lat, driver.lng], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(_arrivalMap);
+  }
+
+  watchDriverOnMap(_arrivalMap, driver, '_arrivalDriverMarker');
+}
+
+function initTrackingScreen() {
+  if (guestData.assignedDriverId) {
+    loadDriverInfo('tracking');
+  }
+  requestLocationPermission();
+}
+
+function initTrackingMap(driver) {
+  setTimeout(() => {
+    if (_trackingMap) { _trackingMap.invalidateSize(); return; }
+    const center = driver.lat && driver.lng ? [driver.lat, driver.lng] : [MANGALORE_LAT, MANGALORE_LNG];
+    _trackingMap = L.map('tracking-map').setView(center, 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(_trackingMap);
+    watchDriverOnMap(_trackingMap, driver, 'tracking');
+  }, 200);
+}
+
+let _mapDriverMarkers = {};
+let _mapGuestMarkers  = {};
+
+function watchDriverOnMap(map, driver, key) {
+  db.collection('drivers').doc(guestData.assignedDriverId).onSnapshot(snap => {
+    if (!snap.exists) return;
+    const d = snap.data();
+
+    // Check if delivered → transition to event mode
+    if (d.tripStatus === 'delivered') {
+      _currentPhase = null;
+      resolveAndApplyPhase('event_active');
+      return;
+    }
+
+    if (d.lat && d.lng) {
+      const icon = L.divIcon({
+        html: `<div style="background:#2a6e7c;color:white;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,.3)">🚗</div>`,
+        iconSize:[36,36], iconAnchor:[18,18], className:''
+      });
+      if (_mapDriverMarkers[key]) {
+        _mapDriverMarkers[key].setLatLng([d.lat, d.lng]);
+      } else {
+        _mapDriverMarkers[key] = L.marker([d.lat, d.lng], { icon })
+          .bindPopup(`<strong>${d.name}</strong><br>${d.vehicle||''}`)
+          .addTo(map);
+      }
+    }
+  }, () => {});
+}
+
+function updateLiveMaps(lat, lng) {
+  const guestIcon = L.divIcon({
+    html: `<div style="background:#16a34a;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,.3)">👤</div>`,
+    iconSize:[32,32], iconAnchor:[16,16], className:''
+  });
+
+  ['tracking','_arrivalDriverMarker'].forEach(key => {
+    const map = key === 'tracking' ? _trackingMap : _arrivalMap;
+    if (!map) return;
+    if (_mapGuestMarkers[key]) {
+      _mapGuestMarkers[key].setLatLng([lat, lng]);
+    } else {
+      _mapGuestMarkers[key] = L.marker([lat, lng], { icon: guestIcon })
+        .bindPopup('<strong>You</strong>')
+        .addTo(map);
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// PHONE CONFIRM
+// ════════════════════════════════════════════════════════════
+async function confirmPhone() {
+  const newPhone = document.getElementById('pcb-phone').value.trim();
+  if (!newPhone) return;
+  try {
+    await db.collection('guests').doc(guestId).update({ phone: newPhone });
+    document.getElementById('pcb-status').textContent = '✅ Updated! Thanks for confirming.';
+    document.getElementById('phone-confirm-box').style.opacity = '.5';
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════════
+// EVENT MODE — post-arrival
+// ════════════════════════════════════════════════════════════
+async function loadEventsForInvitation() {
+  try {
+    const snap = await db.collection('events').orderBy('date','asc').get();
+    allEvents = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    renderEventsPage();
+    renderEventsTimeline();
+    if (_currentPhase === 'post_event' || _currentPhase === 'event_active') renderEventMode();
+  } catch(e) {}
+}
+
+function renderEventMode() {
+  const container = document.getElementById('em-events-list');
+  if (!container) return;
+  if (!allEvents.length) {
+    container.innerHTML = '<p style="color:#6a5e54;font-size:.85rem">No events scheduled yet.</p>';
+    return;
+  }
+  const now = Date.now();
+  container.innerHTML = '';
+  allEvents.forEach((ev, i) => {
+    const dt = ev.date ? new Date(ev.date + 'T' + (ev.time || '00:00')) : null;
+    const isPast = dt && dt.getTime() < now;
+    const isNext = !isPast && allEvents.slice(0, i).every(e => {
+      const d2 = e.date ? new Date(e.date + 'T' + (e.time || '00:00')) : null;
+      return !d2 || d2.getTime() < now;
+    });
+
+    const dayNum  = dt ? dt.getDate() : '—';
+    const month   = dt ? dt.toLocaleDateString('en-US',{month:'short'}).toUpperCase() : '—';
+    const timeStr = dt ? dt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
+
+    const div = document.createElement('div');
+    div.className = `agenda-card${isNext ? ' next-up' : ''}${isPast ? '' : ''}`;
+    div.style.opacity = isPast ? '.5' : '1';
+    div.innerHTML = `
+      <div class="agenda-badge">
+        <div class="ab-day">${dayNum}</div>
+        <div class="ab-month">${month}</div>
+      </div>
+      <div class="agenda-info">
+        <div class="ai-name">${esc(ev.name)}${isNext ? '<span class="next-up-badge">NEXT</span>' : ''}</div>
+        <div class="ai-meta">
+          ${timeStr ? `<span>🕐 ${timeStr}</span>` : ''}
+          ${ev.venue ? `<span>📍 ${esc(ev.venue)}</span>` : ''}
+        </div>
+        ${ev.description ? `<div class="ai-desc">${esc(ev.description)}</div>` : ''}
+        <div class="event-rsvp-row" id="em-rsvp-${ev.id}">
+          <!-- RSVP buttons rendered by loadEventRsvpState -->
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+    loadEventRsvpState(ev.id);
+  });
+}
+
+async function loadEventRsvpState(eventId) {
+  const container = document.getElementById('em-rsvp-' + eventId);
+  if (!container) return;
+  // Only show RSVP for non-main events
+  const ev = allEvents.find(e => e.id === eventId);
+  if (!ev || ev.type === 'main') return;
+
+  try {
+    const doc = await db.collection('events').doc(eventId)
+      .collection('eventRsvp').doc(guestId).get();
+    if (doc.exists) {
+      const d = doc.data();
+      container.innerHTML = d.attending === false
+        ? `<span class="ev-rsvp-declined">✗ You declined</span>`
+        : `<span class="ev-rsvp-confirmed">✓ Attending</span>`;
+    } else {
+      container.innerHTML = `
+        <span style="font-size:.72rem;color:#6a5e54;margin-right:.4rem">Will you attend?</span>
+        <button class="ev-rsvp-btn ev-rsvp-yes" onclick="rsvpForEvent('${eventId}', true)">✓ Yes</button>
+        <button class="ev-rsvp-btn ev-rsvp-no"  onclick="rsvpForEvent('${eventId}', false)">✗ Can't make it</button>
+      `;
+    }
+  } catch(e) {}
+}
+
+async function rsvpForEvent(eventId, attending) {
+  const ev = allEvents.find(e => e.id === eventId);
+  try {
+    await db.collection('events').doc(eventId)
+      .collection('eventRsvp').doc(guestId).set({
+        attending,
+        guestId,
+        guestName: guestData.name || '',
+        respondedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+    // If declining, notify admin + driver via notifications collection
+    if (!attending) {
+      await db.collection('guests').doc(guestId).collection('notifications').add({
+        type: 'event_rsvp_declined',
+        eventId,
+        eventName: ev?.name || 'event',
+        guestName: guestData.name || '',
+        notifiedAdmin: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    // Refresh UI
+    loadEventRsvpState(eventId);
+  } catch(e) { alert('Error saving response.'); }
+}
+
+async function loadPOIsForInvitation() {
+  try {
+    const snap = await db.collection('poi').orderBy('createdAt','asc').get();
+    allPOIs = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    renderPOIsEventMode();
+  } catch(e) {}
+}
+
+const POI_ICONS = { beach:'🏖️', temple:'🛕', restaurant:'🍽️', market:'🛍️', nature:'🌿', hotel:'🏨', transport:'🚌', medical:'🏥', other:'📌' };
+
+function renderPOIsEventMode() {
+  const grid = document.getElementById('em-poi-grid');
+  if (!grid) return;
+  if (!allPOIs.length) { grid.innerHTML = '<p style="color:#6a5e54;font-size:.82rem">No places added yet.</p>'; return; }
+  grid.innerHTML = '';
+  allPOIs.forEach(p => {
+    const icon = POI_ICONS[p.category] || '📌';
+    grid.innerHTML += `
+      <div class="poi-card">
+        <div class="poi-icon">${icon}</div>
+        <div class="poi-name">${esc(p.name)}</div>
+        <div class="poi-desc">${p.description ? esc(p.description) : ''}</div>
+        ${p.lat && p.lng ? `<a class="poi-link" href="https://maps.google.com/?q=${p.lat},${p.lng}" target="_blank">Open in Maps →</a>` : ''}
+      </div>
+    `;
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// EVENTS PAGE (normal invitation view)
+// ════════════════════════════════════════════════════════════
+function renderEventsPage() {
+  const container = document.getElementById('events-from-db');
+  if (!container || !allEvents.length) return;
+  container.innerHTML = '';
+  allEvents.forEach(ev => {
+    const dt = ev.date ? new Date(ev.date + 'T' + (ev.time || '00:00')) : null;
+    const timeStr = dt ? dt.toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+    container.innerHTML += `
+      <div class="col-md-4">
+        <div class="detail-card reveal">
+          <span class="detail-icon">${ev.type === 'mehendi' ? '🌿' : ev.type === 'sangeet' ? '🎵' : ev.type === 'reception' ? '🥂' : '💍'}</span>
+          <h5>${esc(ev.name)}</h5>
+          <p>${timeStr ? timeStr + '<br>' : ''}${ev.venue ? esc(ev.venue) : ''}</p>
+          ${ev.description ? `<p style="margin-top:.5rem;font-size:.78rem;opacity:.8">${esc(ev.description)}</p>` : ''}
+        </div>
+      </div>
+    `;
+  });
+}
+
+function renderEventsTimeline() {
+  const tl = document.getElementById('events-timeline');
+  if (!tl || !allEvents.length) return;
+  tl.innerHTML = '';
+  allEvents.forEach((ev, i) => {
+    const dt = ev.date ? new Date(ev.date + 'T' + (ev.time || '00:00')) : null;
+    const dayLabel = dt ? dt.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}) : '';
+    const timeStr  = dt ? dt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
+    const isRight  = i % 2 === 1;
+    tl.innerHTML += `
+      <div class="tl-item ${isRight ? 'right' : ''}">
+        <div class="tl-dot"></div>
+        <div class="tl-card">
+          <div class="tl-day">${dayLabel}</div>
+          <div class="tl-block">
+            ${timeStr ? `<div class="tl-time">${timeStr}</div>` : ''}
+            <div class="tl-event"><strong>${esc(ev.name)}</strong>${ev.venue ? `<br>${esc(ev.venue)}` : ''}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// CHAT / MESSAGES
+// ════════════════════════════════════════════════════════════
+function watchAdminMessages() {
+  db.collection('chats').doc(guestId)
+    .collection('messages')
+    .where('sender','==','admin')
+    .onSnapshot(snap => {
+      const unread = snap.docs.filter(d => !d.data().readByGuest).length;
+      const badge = document.getElementById('chat-badge');
+      if (badge) {
+        badge.style.display = unread > 0 ? 'flex' : 'none';
+        badge.textContent = unread;
+      }
+    }, () => {});
+}
+
+function toggleChatbot() {
+  const cb = document.getElementById('chatbot');
+  const isOpen = cb.style.display === 'flex';
+  cb.style.display = isOpen ? 'none' : 'flex';
+  if (!isOpen) {
+    document.getElementById('chat-badge').style.display = 'none';
+    loadChatHistory();
+  }
+}
+
+async function loadChatHistory() {
+  const msgs = document.getElementById('chatbot-messages');
+  if (!msgs) return;
+  try {
+    const snap = await db.collection('chats').doc(guestId)
+      .collection('messages').orderBy('timestamp','asc').get();
+    if (snap.empty) return;
+    msgs.innerHTML = '';
+    const batch = db.batch();
+    snap.forEach(doc => {
+      const m = doc.data();
+      appendMessage(m.sender === 'admin' ? 'bot' : 'user', m.message || '');
+      if (m.sender === 'admin' && !m.readByGuest) {
+        batch.update(doc.ref, { readByGuest: true });
+      }
+    });
+    batch.commit().catch(()=>{});
+    msgs.scrollTop = msgs.scrollHeight;
+  } catch(e) {}
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chatbot-input');
+  const text = input.value.trim();
+  if (!text) return;
+  appendMessage('user', text);
+  input.value = '';
+  try {
+    await db.collection('chats').doc(guestId).collection('messages').add({
+      message: text,
+      sender: 'guest',
+      readByAdmin: false,
+      readByGuest: true,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) {}
+}
+
+function appendMessage(sender, text) {
+  const msgs = document.getElementById('chatbot-messages');
+  const div = document.createElement('div');
+  div.className = `chat-msg ${sender}`;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ════════════════════════════════════════════════════════════
+// NAV & COUNTDOWN & FAQ & RSVP
+// ════════════════════════════════════════════════════════════
+function showSection(id) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.topnav-links button').forEach(b => b.classList.remove('active-nav'));
+  const sec = document.getElementById(id); if(sec) sec.classList.add('active');
+  const nav = document.getElementById('nav-' + id); if(nav) nav.classList.add('active-nav');
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(initReveal, 100);
+}
+
+function initCountdown() {
+  const target = new Date('2026-12-27T17:30:00').getTime();
+  function update() {
+    const diff = target - Date.now();
+    if (diff < 0) return;
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    document.getElementById('cd-days').textContent  = String(d).padStart(2,'0');
+    document.getElementById('cd-hours').textContent = String(h).padStart(2,'0');
+    document.getElementById('cd-mins').textContent  = String(m).padStart(2,'0');
+    document.getElementById('cd-secs').textContent  = String(s).padStart(2,'0');
+  }
+  update(); setInterval(update, 1000);
+}
+
+function initReveal() {
+  const obs = new IntersectionObserver(entries => entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('in-view');
+  }), { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+}
+
+function toggleFaq(el) {
+  const item = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+function updateAttendance() {
+  const val = document.querySelector('input[name="attendance"]:checked')?.value;
+  document.getElementById('attendingDetails').style.display = val === 'yes' ? 'block' : 'none';
+}
+
+async function submitRSVP() {
+  const attendance = document.querySelector('input[name="attendance"]:checked')?.value;
+  if (!attendance) { alert('Please select if you will attend.'); return; }
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  try {
+    const data = {
+      attendance,
+      email: document.getElementById('email').value,
+      phone: document.getElementById('phone').value,
+      message: document.getElementById('message').value,
+      submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (attendance === 'yes') {
+      data.guests  = parseInt(document.getElementById('guests').value);
+      data.dietary = document.getElementById('dietary').value;
+    }
+    await db.collection('guests').doc(guestId).update(data);
+    document.getElementById('rsvpForm').style.display = 'none';
+    document.getElementById('success-message').style.display = 'block';
+  } catch(e) {
+    alert('Error submitting RSVP. Please try again.');
+    btn.disabled = false; btn.textContent = 'Submit RSVP';
+  }
+}
+
+function toggleEditContact() {
+  const f = document.getElementById('edit-contact-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+async function saveContactInfo() {
+  try {
+    await db.collection('guests').doc(guestId).update({
+      email: document.getElementById('edit-email').value,
+      phone: document.getElementById('edit-phone').value
+    });
+    alert('Updated!'); toggleEditContact();
+  } catch(e) { alert('Error saving.'); }
+}
+
+function toggleCalDropdown() { document.getElementById('calDropdown').classList.toggle('open'); }
+window.onclick = e => { if (!e.target.matches('.cal-add-btn')) { const d = document.getElementById('calDropdown'); if(d) d.classList.remove('open'); } };
+
+function addToGoogleCalendar() {
+  window.open("https://calendar.google.com/calendar/render?action=TEMPLATE&text=Tanvi+%26+Justin+Wedding&dates=20261227T100000Z/20261231T100000Z&location=Manthan+Beach+Resort,+Mangalore,+India",'_blank');
+}
+
+function downloadIcs() {
+  const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART:20261227T100000Z\nDTEND:20261231T100000Z\nSUMMARY:Tanvi & Justin Wedding\nLOCATION:Manthan Beach Resort, Mangalore, India\nEND:VEVENT\nEND:VCALENDAR`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));
+  a.download = 'wedding-events.ics'; a.click();
+}
+
+// ════════════════════════════════════════════════════════════
+// TRIVIA
+// ════════════════════════════════════════════════════════════
+let questions = [], currentQ = 0, score = 0;
+
+async function initTrivia() {
+  try {
+    const snap = await db.collection('trivia').orderBy('order').get();
+    questions = snap.docs.map(d => d.data());
+    if (!questions.length) {
+      questions = [
+        {category:'Geography',q:'In which state is Mangalore located?',options:['Kerala','Karnataka','Goa','Tamil Nadu'],correct:1,fact:'Mangalore is the chief port city of Karnataka.'},
+        {category:'Culture',q:'What traditional meal is served on a banana leaf?',options:['Thali','Sadhya','Bhojana','Tiffin'],correct:1,fact:'A Sadhya is a traditional South Indian feast served on a banana leaf.'}
+      ];
+    }
+    renderQuestion();
+  } catch(e) {}
+}
+
+function renderQuestion() {
+  if (currentQ >= questions.length) { showEndScreen(); return; }
+  const q = questions[currentQ];
+  document.getElementById('qBadge').textContent = q.category;
+  document.getElementById('qNum').textContent = `Question ${currentQ+1} of ${questions.length}`;
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('scoreDisplay').textContent = `${score} / ${questions.length}`;
+  document.getElementById('progFill').style.width = `${(currentQ/questions.length)*100}%`;
+  const opts = document.getElementById('qOptions');
+  opts.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'q-opt-btn'; btn.textContent = opt;
+    btn.onclick = () => checkAnswer(i, btn);
+    opts.appendChild(btn);
+  });
+  document.getElementById('factBox').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+}
+
+function checkAnswer(idx, btn) {
+  const q = questions[currentQ];
+  document.querySelectorAll('.q-opt-btn').forEach(b => b.disabled = true);
+  if (idx === q.correct) { btn.classList.add('correct'); score++; }
+  else { btn.classList.add('wrong'); document.querySelectorAll('.q-opt-btn')[q.correct].classList.add('correct'); }
+  document.getElementById('factText').textContent = q.fact;
+  document.getElementById('factBox').style.display = 'block';
+  document.getElementById('nextBtn').style.display = 'inline-block';
+  document.getElementById('scoreDisplay').textContent = `${score} / ${questions.length}`;
+}
+
+function nextQuestion() { currentQ++; renderQuestion(); }
+function showEndScreen() {
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('endScreen').style.display = 'block';
+  document.getElementById('endScore').firstChild.textContent = score;
+  document.getElementById('progFill').style.width = '100%';
+}
+function restartQuiz() {
+  currentQ = 0; score = 0;
+  document.getElementById('quizArea').style.display = 'block';
+  document.getElementById('endScreen').style.display = 'none';
+  renderQuestion();
+}
+
+// ════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════
+function esc(t = '') {
+  const d = document.createElement('div');
+  d.textContent = String(t);
+  return d.innerHTML;
+}
+
+// Init trivia once normal invitation loads
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initTrivia, 800);
+});
+</script>
+</body>
+</html>

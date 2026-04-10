@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin – Tanvi & Justin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --sb:#111827;--sb2:#1f2937;--brand:#2a6e7c;--brand-l:#4a9dad;
+      --gold:#c4933f;--red:#dc2626;--green:#16a34a;--yellow:#d97706;
+      --bg:#f0f2f5;--white:#fff;--border:#e2e8f0;
+      --text:#1e293b;--muted:#64748b;
+      --mono:'SF Mono','Fira Code','Courier New',monospace;
+    }
+    body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+
+    /* LOGIN */
+    #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--sb)}
+    .login-box{background:var(--sb2);padding:2.5rem 2rem;border-radius:12px;width:100%;max-width:360px;text-align:center}
+    .login-brand{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:white;font-weight:300;margin-bottom:.25rem}
+    .login-sub{font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:2.25rem}
+    .login-err{display:none;background:#7f1d1d;color:#fca5a5;padding:.6rem;border-radius:6px;font-size:.8rem;margin-bottom:1rem}
+    #pin-input{width:100%;padding:.8rem;background:#374151;border:1px solid #4b5563;border-radius:6px;color:white;font-size:1.4rem;letter-spacing:.4em;text-align:center;margin-bottom:1rem;font-family:inherit;transition:border-color .2s}
+    #pin-input:focus{outline:none;border-color:var(--brand-l)}
+    .login-btn{width:100%;padding:.75rem;background:var(--brand);color:white;border:none;border-radius:6px;font-size:.9rem;cursor:pointer;font-family:inherit;transition:background .2s}
+    .login-btn:hover{background:var(--brand-l)}
+
+    /* APP SHELL */
+    #app{display:none;min-height:100vh}
+    .app-flex{display:flex;min-height:100vh}
+
+    /* SIDEBAR */
+    .sidebar{width:220px;background:var(--sb);min-height:100vh;position:fixed;top:0;left:0;display:flex;flex-direction:column;z-index:30}
+    .sb-brand{padding:1.4rem 1.25rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.07)}
+    .sb-brand .t{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:white;font-weight:300;line-height:1.2}
+    .sb-brand .s{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-top:.2rem}
+    .sb-nav{flex:1;padding:.75rem 0}
+    .nav-link{display:flex;align-items:center;gap:.65rem;padding:.62rem 1.25rem;color:rgba(255,255,255,.5);cursor:pointer;transition:all .18s;font-size:.8rem;font-weight:500;border-left:3px solid transparent;user-select:none}
+    .nav-link:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.04)}
+    .nav-link.active{color:white;background:rgba(42,110,124,.18);border-left-color:var(--brand-l)}
+    .nav-ic{font-size:.95rem;width:18px;text-align:center;flex-shrink:0}
+    .nav-badge{margin-left:auto;background:var(--red);color:white;border-radius:10px;padding:.1rem .45rem;font-size:.62rem;font-weight:700}
+    .sb-footer{padding:1rem 1.25rem;border-top:1px solid rgba(255,255,255,.07)}
+    .btn-logout{width:100%;background:rgba(255,255,255,.07);color:rgba(255,255,255,.5);border:none;padding:.55rem;border-radius:6px;font-size:.78rem;cursor:pointer;transition:all .2s;font-family:inherit}
+    .btn-logout:hover{background:rgba(255,255,255,.13);color:rgba(255,255,255,.9)}
+
+    /* MAIN */
+    .main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+    .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:.8rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+    .tb-title{font-size:.92rem;font-weight:600;color:var(--text)}
+    .tb-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem}
+    .tb-time{font-size:.72rem;color:var(--muted);font-family:var(--mono)}
+    .content{padding:1.5rem;flex:1}
+
+    /* PANELS */
+    .panel{display:none}
+    .panel.active{display:block}
+
+    /* STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:1.5rem}
+    .stat{background:var(--white);padding:1.2rem 1.25rem;border-radius:8px;border:1px solid var(--border)}
+    .stat-n{font-size:2rem;font-family:'Cormorant Garamond',serif;font-weight:300;color:var(--brand);line-height:1}
+    .stat-l{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:.4rem}
+
+    /* CARD */
+    .card{background:var(--white);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1.5rem}
+    .card-head{padding:.8rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#fafbfc;gap:.75rem;flex-wrap:wrap}
+    .card-head h3{font-size:.82rem;font-weight:600;color:var(--text);margin:0}
+    .card-body{padding:1.2rem}
+
+    /* TABLES */
+    .tbl{width:100%;border-collapse:collapse}
+    .tbl th{background:#fafbfc;padding:.6rem 1rem;text-align:left;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--border);white-space:nowrap}
+    .tbl td{padding:.65rem 1rem;border-bottom:1px solid #f1f5f9;font-size:.8rem;color:var(--text);vertical-align:middle}
+    .tbl tr:last-child td{border-bottom:none}
+    .tbl tr:hover td{background:#f8fafc}
+    .mono{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+    .tbl-wrap{overflow-x:auto}
+
+    /* FORM */
+    .form-row{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin-bottom:1rem}
+    .field label{display:block;font-size:.68rem;font-weight:700;color:var(--muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.06em}
+    .field input,.field select,.field textarea{width:100%;padding:.58rem .75rem;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:.83rem;background:white;color:var(--text);transition:border-color .2s}
+    .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--brand)}
+    .field textarea{min-height:72px;resize:vertical}
+
+    /* BUTTONS */
+    .btn{padding:.48rem .95rem;border-radius:6px;border:none;font-size:.78rem;font-weight:500;cursor:pointer;transition:all .18s;font-family:inherit;line-height:1}
+    .btn-sm{padding:.32rem .65rem;font-size:.72rem}
+    .btn-primary{background:var(--brand);color:white}.btn-primary:hover{background:var(--brand-l)}
+    .btn-danger{background:var(--red);color:white}.btn-danger:hover{opacity:.85}
+    .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{background:#f1f5f9;color:var(--text)}
+    .btn-success{background:var(--green);color:white}
+    .btn-warn{background:var(--yellow);color:white}
+
+    /* CHIPS */
+    .chip{display:inline-flex;align-items:center;padding:.18rem .55rem;border-radius:20px;font-size:.68rem;font-weight:600;white-space:nowrap}
+    .c-green{background:#dcfce7;color:#15803d}
+    .c-red{background:#fee2e2;color:#b91c1c}
+    .c-yellow{background:#fef9c3;color:#854d0e}
+    .c-blue{background:#dbeafe;color:#1d4ed8}
+    .c-gray{background:#f1f5f9;color:#475569}
+    .c-purple{background:#f3e8ff;color:#7e22ce}
+    .c-teal{background:#ccfbf1;color:#0f766e}
+    .c-orange{background:#ffedd5;color:#c2410c}
+
+    /* SEARCH INPUT */
+    .search-inp{padding:.35rem .65rem;border:1px solid var(--border);border-radius:6px;font-size:.78rem;font-family:inherit;width:190px;background:white}
+    .search-inp:focus{outline:none;border-color:var(--brand)}
+
+    /* ASSIGN PANEL */
+    #assign-panel{border:2px solid var(--brand)}
+    #assign-panel .card-head{background:#f0fafa}
+
+    /* QR MODAL */
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;display:flex;align-items:center;justify-content:center;padding:1rem}
+    .modal-box{background:white;border-radius:12px;padding:1.75rem 1.5rem;max-width:360px;width:100%;text-align:center;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+    .modal-close{position:absolute;top:.75rem;right:.9rem;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--muted);line-height:1;padding:.2rem .4rem;border-radius:4px;transition:background .15s}
+    .modal-close:hover{background:#f1f5f9;color:var(--text)}
+    .modal-title{font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:var(--text);margin-bottom:.2rem}
+    .modal-sub{font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:1.25rem}
+    #qr-canvas-wrap{display:flex;justify-content:center;margin-bottom:1.25rem}
+    #qr-canvas-wrap canvas,#qr-canvas-wrap img{border-radius:6px;border:3px solid var(--border)}
+    .modal-divider{border:none;border-top:1px solid var(--border);margin:1rem 0}
+    .modal-section-label{font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem;text-align:left}
+
+    /* LIVE MAP */
+    #live-map{height:600px;border-radius:8px;border:1px solid var(--border);z-index:1;position:relative}
+    .map-legend{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;font-size:.68rem;color:var(--muted);margin-bottom:.85rem}
+    .legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:.25rem}
+    .map-driver-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;margin-top:1rem}
+    .map-driver-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:.85rem 1rem}
+    .map-driver-card .dc-name{font-weight:600;font-size:.82rem;color:var(--text);margin-bottom:.2rem}
+    .map-driver-card .dc-detail{font-size:.68rem;color:var(--muted);margin-bottom:.15rem}
+    .loc-pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:.35rem;animation:pulse 1.8s ease infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+    .loc-offline{display:inline-block;width:8px;height:8px;border-radius:50%;background:#9ca3af;margin-right:.35rem}
+
+    /* MAP LAYER CONTROLS */
+    .map-layer-controls{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.85rem;align-items:center}
+    .layer-toggle{display:flex;align-items:center;gap:.4rem;padding:.3rem .7rem;border-radius:20px;font-size:.7rem;font-weight:600;cursor:pointer;border:2px solid;transition:all .18s;user-select:none}
+    .layer-toggle.on{opacity:1}
+    .layer-toggle.off{opacity:.4;filter:grayscale(.8)}
+    .lt-drivers{border-color:#2a6e7c;color:#2a6e7c;background:#f0fafa}
+    .lt-guests{border-color:#c4933f;color:#c4933f;background:#fdf8f0}
+    .lt-arrivals{border-color:#7e22ce;color:#7e22ce;background:#faf5ff}
+
+    /* ══ CHAT INBOX ══ */
+    .chat-layout{display:grid;grid-template-columns:280px 1fr;gap:0;height:600px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+    .chat-sidebar{background:#fafbfc;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+    .chat-sb-head{padding:.75rem 1rem;border-bottom:1px solid var(--border);font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;justify-content:space-between}
+    .chat-list{flex:1;overflow-y:auto}
+    .chat-item{padding:.8rem 1rem;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;position:relative}
+    .chat-item:hover{background:#f1f5f9}
+    .chat-item.active{background:#e0f2fe;border-left:3px solid var(--brand)}
+    .chat-item.unread{background:#fff7ed}
+    .chat-item .ci-name{font-size:.82rem;font-weight:600;color:var(--text);margin-bottom:.15rem;display:flex;align-items:center;justify-content:space-between}
+    .chat-item .ci-preview{font-size:.72rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+    .chat-item .ci-time{font-size:.62rem;color:var(--muted)}
+    .ci-unread-dot{width:8px;height:8px;background:var(--red);border-radius:50%;flex-shrink:0;margin-left:.35rem}
+    .ci-unread-count{background:var(--red);color:white;border-radius:10px;padding:.05rem .4rem;font-size:.6rem;font-weight:700;margin-left:auto}
+    .chat-main{display:flex;flex-direction:column;background:white;overflow:hidden}
+    .chat-main-head{padding:.75rem 1.2rem;border-bottom:1px solid var(--border);background:#fafbfc;display:flex;align-items:center;gap:.75rem}
+    .chat-main-head .cmh-name{font-weight:600;font-size:.88rem;color:var(--text)}
+    .chat-main-head .cmh-status{font-size:.68rem;color:var(--muted)}
+    .chat-messages{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.5rem}
+    .chat-empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:.85rem;flex-direction:column;gap:.5rem}
+    .msg{padding:.55rem .8rem;border-radius:8px;font-size:.8rem;line-height:1.5;max-width:72%;word-break:break-word}
+    .msg.guest{background:var(--brand);color:white;align-self:flex-start}
+    .msg.admin{background:white;border:1px solid var(--border);align-self:flex-end}
+    .msg-ts{font-size:.58rem;opacity:.5;margin-top:.2rem;text-align:right}
+    .chat-input-row{padding:.75rem 1rem;border-top:1px solid var(--border);display:flex;gap:.5rem;background:#fafbfc}
+    .chat-input-row input{flex:1;padding:.6rem .875rem;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:.85rem}
+    .chat-input-row input:focus{outline:none;border-color:var(--brand)}
+    .chat-no-select{display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:.75rem;color:var(--muted)}
+
+    /* EVENTS PANEL */
+    .event-card{background:white;border:1px solid var(--border);border-radius:8px;padding:1.2rem;margin-bottom:.75rem;display:grid;grid-template-columns:auto 1fr auto;gap:1rem;align-items:start}
+    .event-date-badge{background:var(--brand);color:white;border-radius:8px;padding:.5rem .75rem;text-align:center;min-width:52px}
+    .event-date-badge .edb-day{font-size:1.4rem;font-family:'Cormorant Garamond',serif;font-weight:300;line-height:1}
+    .event-date-badge .edb-month{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;opacity:.8}
+    .event-info .ev-name{font-weight:600;font-size:.88rem;color:var(--text);margin-bottom:.2rem}
+    .event-info .ev-meta{font-size:.72rem;color:var(--muted);display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.35rem}
+    .event-info .ev-desc{font-size:.75rem;color:var(--muted);line-height:1.5}
+    .event-transport-badge{font-size:.68rem}
+
+    /* POI PANEL */
+    .poi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.75rem}
+    .poi-card{background:white;border:1px solid var(--border);border-radius:8px;padding:1rem}
+    .poi-card .poi-icon{font-size:1.6rem;margin-bottom:.4rem}
+    .poi-card .poi-name{font-weight:600;font-size:.82rem;color:var(--text);margin-bottom:.15rem}
+    .poi-card .poi-cat{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem}
+    .poi-card .poi-desc{font-size:.72rem;color:var(--muted);line-height:1.4}
+
+    /* PHASE CONTROL */
+    .phase-bar{background:linear-gradient(135deg,var(--sb),var(--sb2));border-radius:8px;padding:1.2rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+    .phase-bar .pb-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.2rem}
+    .phase-bar .pb-current{font-size:1rem;color:white;font-weight:600}
+    .phase-selector{display:flex;gap:.4rem;flex-wrap:wrap}
+    .phase-btn{padding:.38rem .8rem;border-radius:20px;border:1px solid rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.6);font-size:.7rem;cursor:pointer;font-family:inherit;transition:all .18s}
+    .phase-btn:hover{background:rgba(255,255,255,.1);color:white}
+    .phase-btn.active{background:var(--brand);border-color:var(--brand);color:white}
+
+    /* MOBILE */
+    @media(max-width:768px){
+      .sidebar{width:100%;min-height:auto;top:auto;bottom:0;flex-direction:row;border-top:1px solid rgba(255,255,255,.1)}
+      .sb-brand,.sb-footer{display:none}
+      .sb-nav{display:flex;flex-direction:row;padding:0;overflow-x:auto;width:100%}
+      .nav-link{flex-direction:column;gap:.15rem;padding:.55rem .5rem;font-size:.55rem;border-left:none;border-top:3px solid transparent;min-width:60px;text-align:center;flex:1;justify-content:center}
+      .nav-link.active{border-top-color:var(--brand-l);border-left-color:transparent}
+      .nav-ic{font-size:1.1rem;width:auto}
+      .nav-badge{position:absolute;top:4px;right:4px;padding:.05rem .35rem}
+      .nav-link{position:relative}
+      .main{margin-left:0;padding-bottom:68px}
+      .topbar{padding:.7rem 1rem}
+      .content{padding:1rem}
+      .stats-grid{grid-template-columns:1fr 1fr}
+      .form-row{grid-template-columns:1fr}
+      .tbl{font-size:.73rem}
+      .tbl th,.tbl td{padding:.5rem .6rem}
+      #live-map{height:340px}
+      .chat-layout{grid-template-columns:1fr;height:auto}
+      .chat-sidebar{height:220px}
+      .chat-messages{height:280px}
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-brand">Tanvi <span style="font-style:italic;color:rgba(196,147,63,.75)">&</span> Justin</div>
+    <div class="login-sub">Wedding Admin Panel</div>
+    <div class="login-err" id="login-err">Incorrect PIN. Try again.</div>
+    <input type="password" id="pin-input" placeholder="PIN" maxlength="6"
+      onkeypress="if(event.key==='Enter')checkPin()"/>
+    <button class="login-btn" onclick="checkPin()">Access Panel</button>
+  </div>
+</div>
+
+<!-- QR MODAL -->
+<div id="qr-modal" style="display:none" class="modal-bg" onclick="if(event.target===this)closeQR()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeQR()">✕</button>
+    <div class="modal-title" id="qr-driver-name"></div>
+    <div class="modal-sub">Driver Access · QR & PIN</div>
+    <div id="qr-canvas-wrap"></div>
+    <div class="modal-section-label">Driver link</div>
+    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem">
+      <input id="qr-link-input" type="text" readonly onclick="this.select()"
+        style="flex:1;padding:.45rem .6rem;border:1px solid var(--border);border-radius:6px;font-size:.65rem;font-family:var(--mono);background:#fafbfc;color:var(--text)"/>
+      <button class="btn btn-primary btn-sm" id="qr-copy-btn" onclick="copyQRLink()">⎘ Copy</button>
+    </div>
+    <hr class="modal-divider"/>
+    <div class="modal-section-label">Driver PIN (4–6 digits)</div>
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <input type="password" id="qr-pin-input" placeholder="New PIN" maxlength="6"
+        style="flex:1;padding:.5rem .65rem;border:1px solid var(--border);border-radius:6px;font-size:1rem;font-family:var(--mono);text-align:center;letter-spacing:.3em"
+        onkeypress="if(event.key==='Enter')saveDriverPIN()"/>
+      <button class="btn btn-primary btn-sm" onclick="saveDriverPIN()">Save</button>
+    </div>
+    <div id="qr-pin-status" style="font-size:.65rem;color:var(--green);margin-top:.4rem;text-align:left;min-height:.8rem"></div>
+    <div id="qr-current-pin-hint" style="font-size:.62rem;color:var(--muted);margin-top:.15rem;text-align:left"></div>
+  </div>
+</div>
+
+<!-- EVENT ASSIGN MODAL -->
+<div id="event-assign-modal" style="display:none" class="modal-bg" onclick="if(event.target===this)closeEventAssign()">
+  <div class="modal-box" style="max-width:480px">
+    <button class="modal-close" onclick="closeEventAssign()">✕</button>
+    <div class="modal-title" id="eam-title">Assign Transport</div>
+    <div class="modal-sub" id="eam-sub">Event · Driver Assignment</div>
+    <div style="text-align:left">
+      <div class="field" style="margin-bottom:.85rem">
+        <label>Guest</label>
+        <select id="eam-guest"><option value="">— Select guest —</option></select>
+      </div>
+      <div class="field" style="margin-bottom:.85rem">
+        <label>Driver</label>
+        <select id="eam-driver"><option value="">— Select driver —</option></select>
+      </div>
+      <div class="field" style="margin-bottom:.85rem">
+        <label>Pickup Location</label>
+        <input type="text" id="eam-pickup" placeholder="e.g. Hotel lobby"/>
+      </div>
+      <div class="field" style="margin-bottom:1.2rem">
+        <label>Pickup Time</label>
+        <input type="datetime-local" id="eam-time"/>
+      </div>
+      <button class="btn btn-primary" onclick="saveEventAssignment()" style="width:100%">💾 Save Assignment</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+ <div class="app-flex">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sb-brand">
+      <div class="t">Tanvi <span style="font-style:italic;color:rgba(196,147,63,.75)">&</span> Justin</div>
+      <div class="s">Admin · December 2026</div>
+    </div>
+    <div class="sb-nav">
+      <div class="nav-link active" onclick="switchTab('dashboard',this)" data-label="Dashboard">
+        <span class="nav-ic">◉</span> Dashboard
+      </div>
+      <div class="nav-link" onclick="switchTab('guests',this)" data-label="Guests">
+        <span class="nav-ic">👥</span> Guests
+      </div>
+      <div class="nav-link" onclick="switchTab('transport',this)" data-label="Transport">
+        <span class="nav-ic">🚗</span> Transport
+      </div>
+      <div class="nav-link" onclick="switchTab('drivers',this)" data-label="Drivers">
+        <span class="nav-ic">🧑‍✈️</span> Drivers
+      </div>
+      <div class="nav-link" onclick="switchTab('events',this)" data-label="Events">
+        <span class="nav-ic">🎉</span> Events
+      </div>
+      <div class="nav-link" onclick="switchTab('map',this)" data-label="Live Map">
+        <span class="nav-ic">🗺️</span> Live Map
+      </div>
+      <div class="nav-link" id="nav-chat" onclick="switchTab('chat',this)" data-label="Chat">
+        <span class="nav-ic">💬</span> Chat
+        <span class="nav-badge" id="unread-badge" style="display:none">0</span>
+      </div>
+      <div class="nav-link" onclick="switchTab('poi',this)" data-label="Places">
+        <span class="nav-ic">📍</span> Places
+      </div>
+      <div class="nav-link" onclick="switchTab('settings',this)" data-label="Settings">
+        <span class="nav-ic">⚙</span> Settings
+      </div>
+    </div>
+    <div class="sb-footer">
+      <button class="btn-logout" onclick="logout()">↩ Logout</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="tb-title" id="tb-title">Dashboard</div>
+        <div class="tb-sub" id="tb-sub">Overview · Tanvi & Justin Wedding</div>
+      </div>
+      <div class="tb-time" id="tb-time"></div>
+    </div>
+
+    <div class="content">
+
+      <!-- ─────────── DASHBOARD ─────────── -->
+      <div id="panel-dashboard" class="panel active">
+        <div class="stats-grid">
+          <div class="stat"><div class="stat-n" id="s-total">—</div><div class="stat-l">Total Guests</div></div>
+          <div class="stat"><div class="stat-n" id="s-opened">—</div><div class="stat-l">Inv. Opened</div></div>
+          <div class="stat"><div class="stat-n" id="s-confirmed">—</div><div class="stat-l">Confirmed</div></div>
+          <div class="stat"><div class="stat-n" id="s-declined">—</div><div class="stat-l">Declined</div></div>
+          <div class="stat"><div class="stat-n" id="s-transport">—</div><div class="stat-l">Transport Assigned</div></div>
+          <div class="stat"><div class="stat-n" id="s-drivers">—</div><div class="stat-l">Active Drivers</div></div>
+          <div class="stat"><div class="stat-n" id="s-aboard">—</div><div class="stat-l">Guests Aboard</div></div>
+          <div class="stat"><div class="stat-n" id="s-delivered">—</div><div class="stat-l">Delivered</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Guest Overview</h3>
+            <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Refresh</button>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr>
+                <th>Guest</th><th>Inv. Status</th><th>RSVP</th><th>Pax</th>
+                <th>Driver</th><th>Trip Status</th><th>Link</th>
+              </tr></thead>
+              <tbody id="dash-tbody">
+                <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--muted)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────── GUESTS ─────────── -->
+      <div id="panel-guests" class="panel">
+        <div class="card">
+          <div class="card-head"><h3>Add New Guest</h3></div>
+          <div class="card-body" id="add-guest-form">
+            <div class="form-row">
+              <div class="field"><label>Name *</label><input type="text" id="g-name" placeholder="Full name"/></div>
+              <div class="field"><label>Email *</label><input type="email" id="g-email" placeholder="email@example.com"/></div>
+              <div class="field"><label>Phone</label><input type="tel" id="g-phone" placeholder="+1 555 000 0000"/></div>
+              <div class="field"><label>Preferred Language</label>
+                <select id="g-lang">
+                  <option value="en">🇺🇸 English</option>
+                  <option value="es">🇲🇽 Español</option>
+                  <option value="hi">🇮🇳 हिंदी</option>
+                  <option value="kn">🇮🇳 ಕನ್ನಡ</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label>Guest Type</label>
+                <select id="g-type">
+                  <option value="international">🌍 International — full logistics flow</option>
+                  <option value="local">🏡 Local — simplified (no flight tracking)</option>
+                </select>
+              </div>
+              <div class="field"><label>Country of Origin</label>
+                <input type="text" id="g-country" placeholder="e.g. United States, Mexico…"/>
+              </div>
+            </div>
+            <div class="field" style="margin-bottom:1rem">
+              <label>Notes</label>
+              <textarea id="g-notes" placeholder="Dietary restrictions, special requests…"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="addGuest()">+ Create Guest & Generate Link</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Guest List <span id="guest-count" style="color:var(--muted);font-weight:400"></span></h3>
+            <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+              <input class="search-inp" type="text" id="guest-search" placeholder="Search name / email…" oninput="filterGuests()"/>
+              <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⤓ CSV</button>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr>
+                <th>Name</th><th>Email</th><th>Inv.</th><th>RSVP</th><th>Inv. Link</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="guests-tbody">
+                <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────── TRANSPORT ─────────── -->
+      <div id="panel-transport" class="panel">
+        <div class="card">
+          <div class="card-head">
+            <h3>Guest Transport Assignments</h3>
+            <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+              <span class="chip c-blue" id="transport-progress">0 / 0 assigned</span>
+              <button class="btn btn-ghost btn-sm" onclick="loadTransport()">↻</button>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl" id="transport-table">
+              <thead><tr>
+                <th>Guest</th><th>RSVP</th><th>Driver</th>
+                <th>Destination</th><th>Type</th><th>Address</th>
+                <th>Pickup</th><th>Trip Status</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="transport-tbody">
+                <tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted)">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="assign-panel" class="card" style="display:none">
+          <div class="card-head">
+            <h3>✎ Assign Transport — <span id="assign-guest-name" style="color:var(--brand)"></span></h3>
+            <button class="btn btn-ghost btn-sm" onclick="closeAssign()">✕ Cancel</button>
+          </div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="field"><label>Driver</label>
+                <select id="assign-driver"><option value="">— No driver —</option></select>
+              </div>
+              <div class="field"><label>Destination Type</label>
+                <select id="assign-type">
+                  <option value="hotel">🏨 Hotel</option>
+                  <option value="apartment">🏢 Apartment</option>
+                  <option value="venue">📍 Venue</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="field"><label>Destination Name</label>
+                <input type="text" id="assign-dest" placeholder="e.g. Hotel Taj Vivanta"/>
+              </div>
+              <div class="field"><label>Full Address</label>
+                <input type="text" id="assign-addr" placeholder="Street, City"/>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field"><label>Pickup Location</label>
+                <input type="text" id="assign-pickup" placeholder="e.g. Airport Terminal 2"/>
+              </div>
+              <div class="field"><label>Pickup Date & Time</label>
+                <input type="datetime-local" id="assign-time"/>
+              </div>
+            </div>
+            <div class="field" style="margin-bottom:1.2rem">
+              <label>Driver Notes</label>
+              <textarea id="assign-notes" placeholder="Special instructions, bags, accessibility…"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="saveAssignment()">💾 Save Assignment</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────── DRIVERS ─────────── -->
+      <div id="panel-drivers" class="panel">
+        <div class="card">
+          <div class="card-head"><h3>Register Driver</h3></div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="field"><label>Full Name *</label><input type="text" id="d-name" placeholder="Driver name"/></div>
+              <div class="field"><label>Phone *</label><input type="tel" id="d-phone" placeholder="+91 9876543210"/></div>
+              <div class="field"><label>Vehicle</label><input type="text" id="d-vehicle" placeholder="Toyota Innova"/></div>
+              <div class="field"><label>License Plate</label><input type="text" id="d-plate" placeholder="KA-01-AB-1234"/></div>
+            </div>
+            <div class="form-row">
+              <div class="field"><label>Capacity (pax)</label>
+                <input type="number" id="d-capacity" min="1" max="12" value="4"/>
+              </div>
+              <div class="field"><label>Initial Status</label>
+                <select id="d-status">
+                  <option value="available">✅ Available</option>
+                  <option value="on-duty">🔵 On Duty</option>
+                  <option value="off">⬜ Off</option>
+                </select>
+              </div>
+              <div class="field"><label>Access PIN (4–6 digits)</label>
+                <input type="password" id="d-pin" placeholder="e.g. 1234" maxlength="6"
+                  style="letter-spacing:.3em;text-align:center;font-family:var(--mono)"/>
+              </div>
+              <div class="field"><label>Notes</label>
+                <input type="text" id="d-notes" placeholder="Optional notes"/>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="addDriver()">+ Register Driver</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Driver Roster <span id="driver-count" style="color:var(--muted);font-weight:400"></span></h3>
+            <span style="font-size:.72rem;color:var(--muted)">📱 = QR & PIN · 🔗 = open driver app</span>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr>
+                <th>Name</th><th>Phone</th><th>Vehicle</th><th>Plate</th>
+                <th>Cap.</th><th>Status</th><th>PIN</th><th>Guests</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="drivers-tbody">
+                <tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted)">No drivers yet</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────── EVENTS ─────────── -->
+      <div id="panel-events" class="panel">
+
+        <!-- Phase control bar -->
+        <div class="phase-bar">
+          <div>
+            <div class="pb-label">Current Global Phase</div>
+            <div class="pb-current" id="phase-current-label">Loading…</div>
+          </div>
+          <div class="phase-selector" id="phase-selector"></div>
+        </div>
+
+        <!-- Add event -->
+        <div class="card">
+          <div class="card-head"><h3>➕ Create Event / Ceremony</h3></div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="field"><label>Event Name *</label>
+                <input type="text" id="ev-name" placeholder="e.g. Mehendi, Sangeet, Reception…"/>
+              </div>
+              <div class="field"><label>Event Type</label>
+                <select id="ev-type">
+                  <option value="main">💍 Main Ceremony</option>
+                  <option value="mehendi">🌿 Mehendi</option>
+                  <option value="sangeet">🎵 Sangeet</option>
+                  <option value="reception">🥂 Reception</option>
+                  <option value="other">📅 Other</option>
+                </select>
+              </div>
+              <div class="field"><label>Date *</label>
+                <input type="date" id="ev-date"/>
+              </div>
+              <div class="field"><label>Time</label>
+                <input type="time" id="ev-time"/>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field"><label>Venue Name</label>
+                <input type="text" id="ev-venue" placeholder="e.g. Goldfinch Hotel, Mangalore"/>
+              </div>
+              <div class="field"><label>Address</label>
+                <input type="text" id="ev-address" placeholder="Full address"/>
+              </div>
+              <div class="field"><label>GPS Lat</label>
+                <input type="number" id="ev-lat" placeholder="12.8698" step="any"/>
+              </div>
+              <div class="field"><label>GPS Lng</label>
+                <input type="number" id="ev-lng" placeholder="74.8431" step="any"/>
+              </div>
+            </div>
+            <div class="field" style="margin-bottom:1.2rem">
+              <label>Description / Notes for Guests</label>
+              <textarea id="ev-desc" placeholder="Dress code, what to expect…"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="addEvent()">+ Create Event</button>
+          </div>
+        </div>
+
+        <!-- Event list -->
+        <div id="events-list">
+          <div style="text-align:center;padding:2rem;color:var(--muted);font-size:.85rem">Loading events…</div>
+        </div>
+      </div>
+
+      <!-- ─────────── LIVE MAP ─────────── -->
+      <div id="panel-map" class="panel">
+        <div class="card">
+          <div class="card-head">
+            <h3>🗺️ Live Tracking</h3>
+            <button class="btn btn-ghost btn-sm" onclick="refreshMap()">↻ Refresh</button>
+          </div>
+          <div class="card-body">
+
+            <!-- Layer toggles -->
+            <div style="margin-bottom:.5rem;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Map Layers</div>
+            <div class="map-layer-controls">
+              <div class="layer-toggle lt-drivers on" id="lt-drivers" onclick="toggleLayer('drivers')">
+                🚗 Drivers
+              </div>
+              <div class="layer-toggle lt-guests on" id="lt-guests" onclick="toggleLayer('guests')">
+                ✈️ Arrivals (GPS)
+              </div>
+              <div class="layer-toggle lt-arrivals on" id="lt-arrivals" onclick="toggleLayer('arrivals')">
+                🎉 Event Pins
+              </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="map-legend">
+              <span><span class="legend-dot" style="background:#c4933f"></span>Waiting</span>
+              <span><span class="legend-dot" style="background:#2a6e7c"></span>En route</span>
+              <span><span class="legend-dot" style="background:#16a34a"></span>Aboard</span>
+              <span><span class="legend-dot" style="background:#7e22ce"></span>Delivered</span>
+              <span><span class="legend-dot" style="background:#ef4444"></span>Guest location</span>
+              <span><span class="legend-dot" style="background:#f59e0b"></span>Event venue</span>
+            </div>
+
+            <!-- Map -->
+            <div id="live-map"></div>
+
+            <!-- Driver status cards -->
+            <div class="map-driver-grid" id="map-driver-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────── CHAT INBOX ─────────── -->
+      <div id="panel-chat" class="panel">
+        <div class="card" style="overflow:visible">
+          <div class="card-head">
+            <h3>💬 Guest Messages</h3>
+            <div style="display:flex;gap:.5rem;align-items:center">
+              <span id="chat-total-unread" class="chip c-red" style="display:none">0 unread</span>
+            </div>
+          </div>
+          <div class="chat-layout">
+            <!-- Sidebar: conversation list -->
+            <div class="chat-sidebar">
+              <div class="chat-sb-head">
+                Conversations
+                <span id="chat-conv-count" style="font-weight:400;color:var(--muted)"></span>
+              </div>
+              <div class="chat-list" id="chat-list">
+                <div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.8rem">Loading…</div>
+              </div>
+            </div>
+            <!-- Main: messages -->
+            <div class="chat-main">
+              <div id="chat-no-select" class="chat-no-select">
+                <div style="font-size:2rem">💬</div>
+                <div style="font-size:.85rem;color:var(--muted)">Select a conversation</div>
+              </div>
+              <div id="chat-active-area" style="display:none;flex:1;display:none;flex-direction:column;height:100%">
+                <div class="chat-main-head">
+                  <div>
+                    <div class="cmh-name" id="cmh-name">—</div>
+                    <div class="cmh-status" id="cmh-status">—</div>
+                  </div>
+                </div>
+                <div class="chat-messages" id="chat-messages"></div>
+                <div class="chat-input-row">
+                  <input type="text" id="admin-msg" placeholder="Reply to guest…"
+                    onkeypress="if(event.key==='Enter')sendReply()"/>
+                  <button class="btn btn-primary" onclick="sendReply()">Send →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────── PLACES OF INTEREST ─────────── -->
+      <div id="panel-poi" class="panel">
+        <div class="card">
+          <div class="card-head"><h3>📍 Add Place of Interest</h3></div>
+          <div class="card-body">
+            <div class="form-row">
+              <div class="field"><label>Name *</label>
+                <input type="text" id="poi-name" placeholder="e.g. Panambur Beach"/>
+              </div>
+              <div class="field"><label>Category</label>
+                <select id="poi-cat">
+                  <option value="beach">🏖️ Beach</option>
+                  <option value="temple">🛕 Temple / Religious</option>
+                  <option value="restaurant">🍽️ Restaurant</option>
+                  <option value="market">🛍️ Market / Shopping</option>
+                  <option value="nature">🌿 Nature</option>
+                  <option value="hotel">🏨 Hotel</option>
+                  <option value="transport">🚌 Transport Hub</option>
+                  <option value="medical">🏥 Medical</option>
+                  <option value="other">📌 Other</option>
+                </select>
+              </div>
+              <div class="field"><label>GPS Lat</label>
+                <input type="number" id="poi-lat" placeholder="12.8698" step="any"/>
+              </div>
+              <div class="field"><label>GPS Lng</label>
+                <input type="number" id="poi-lng" placeholder="74.8431" step="any"/>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="field"><label>Address</label>
+                <input type="text" id="poi-addr" placeholder="Full address (optional)"/>
+              </div>
+              <div class="field"><label>Phone / WhatsApp</label>
+                <input type="text" id="poi-phone" placeholder="+91…"/>
+              </div>
+            </div>
+            <div class="field" style="margin-bottom:1.2rem">
+              <label>Description / Tip for Guests</label>
+              <textarea id="poi-desc" placeholder="e.g. Great sunset spot, 20 min from hotel…"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="addPOI()">+ Add Place</button>
+          </div>
+        </div>
+
+        <div class="poi-grid" id="poi-grid">
+          <div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted);font-size:.85rem">Loading places…</div>
+        </div>
+      </div>
+
+      <!-- ─────────── SETTINGS ─────────── -->
+      <div id="panel-settings" class="panel">
+        <div style="display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+          <div class="card">
+            <div class="card-head"><h3>Wedding Details</h3></div>
+            <div class="card-body">
+              <div class="field" style="margin-bottom:1rem"><label>Couple Names</label><input type="text" id="set-couple" value="Tanvi & Justin"/></div>
+              <div class="field" style="margin-bottom:1rem"><label>Wedding Date</label><input type="text" id="set-date" value="December 27–30, 2026"/></div>
+              <div class="field" style="margin-bottom:1.2rem"><label>Location</label><input type="text" id="set-location" value="Mangalore, India"/></div>
+              <button class="btn btn-primary" onclick="alert('Settings saved!')">Save</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Security</h3></div>
+            <div class="card-body">
+              <div class="field" style="margin-bottom:1.2rem">
+                <label>New Admin PIN (4–6 digits)</label>
+                <input type="password" id="new-pin" placeholder="••••" maxlength="6"/>
+              </div>
+              <button class="btn btn-primary" onclick="changePIN()">Update PIN</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Data Export</h3></div>
+            <div class="card-body">
+              <p style="font-size:.8rem;color:var(--muted);margin-bottom:1rem">Export full guest + transport data as CSV.</p>
+              <button class="btn btn-ghost" onclick="exportCSV()">⤓ Export Guests CSV</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>🔔 Push Notifications</h3></div>
+            <div class="card-body">
+              <p style="font-size:.8rem;color:var(--muted);margin-bottom:1rem">
+                Enable push notifications so you receive alerts when guests send messages, confirm RSVP, or decline events. On iPhone, first add this page to your Home Screen.
+              </p>
+              <button class="btn btn-primary" id="notif-btn" onclick="requestNotifPermission()">Enable Notifications</button>
+              <div id="notif-status" style="font-size:.72rem;color:var(--muted);margin-top:.5rem"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+ </div><!-- /app-flex -->
+</div><!-- /app -->
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<!-- QR Code generator -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- Leaflet -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Notifications module -->
+<script src="notifications.js"></script>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// FIREBASE
+// ════════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyCoXMPGLlPn56oKYnWX6iHuJOlJYPlyUV8",
+  authDomain: "tanvi-and-justin.firebaseapp.com",
+  projectId: "tanvi-and-justin",
+  storageBucket: "tanvi-and-justin.firebasestorage.app",
+  messagingSenderId: "418808308001",
+  appId: "1:418808308001:web:730d002e16f82327f5de60"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
+let PIN              = localStorage.getItem('adminPIN') || '8888';
+let allGuests        = [];
+let allDrivers       = [];
+let allEvents        = [];
+let allPOIs          = [];
+let currentChatId    = null;
+let _chatUnsub       = null;
+let _assignId        = null;
+let _tripStatusUnsub = null;
+let guestTripStatus  = {};
+let _chatPreviews    = {}; // { guestId: { name, lastMsg, lastTs, unread } }
+let _chatListUnsubs  = []; // per-guest unsubs for inbox
+let _eventAssignEventId = null;
+
+// MAP state
+let _leafletMap      = null;
+let _mapInited       = false;
+let _driverMarkers   = {};
+let _guestMarkers    = {};
+let _eventMarkers    = {};
+let _mapUnsub        = null;
+let _layerState      = { drivers: true, guests: true, arrivals: true };
+
+// ════════════════════════════════════════════════════════════
+// GLOBAL PHASES
+// ════════════════════════════════════════════════════════════
+const PHASES = [
+  { id: 'pre_travel',   label: '✈️ Pre-Travel',       desc: 'Guests seeing invitation & RSVP' },
+  { id: 'in_transit',   label: '🛫 In Transit',        desc: 'Guests traveling to India' },
+  { id: 'arrived',      label: '🏨 Arrived',           desc: 'Guests at hotel / settling in' },
+  { id: 'event_active', label: '🎉 Event Active',      desc: 'Ceremonies ongoing' },
+  { id: 'post_event',   label: '🌅 Post-Event',        desc: 'After celebrations' }
+];
+
+let currentPhase = 'pre_travel';
+
+async function loadPhase() {
+  try {
+    const doc = await db.collection('liveOps').doc('phase').get();
+    if (doc.exists) currentPhase = doc.data().phase || 'pre_travel';
+  } catch(e) {}
+  renderPhaseBar();
+}
+
+function renderPhaseBar() {
+  const ph = PHASES.find(p => p.id === currentPhase) || PHASES[0];
+  document.getElementById('phase-current-label').textContent = ph.label + ' — ' + ph.desc;
+  const sel = document.getElementById('phase-selector');
+  sel.innerHTML = '';
+  PHASES.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'phase-btn' + (p.id === currentPhase ? ' active' : '');
+    btn.textContent = p.label;
+    btn.onclick = () => setPhase(p.id);
+    sel.appendChild(btn);
+  });
+}
+
+async function setPhase(phaseId) {
+  try {
+    await db.collection('liveOps').doc('phase').set({
+      phase: phaseId,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    currentPhase = phaseId;
+    renderPhaseBar();
+  } catch(e) { console.error('Phase:', e); }
+}
+
+// ════════════════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════════════════
+function checkPin() {
+  const val = document.getElementById('pin-input').value.trim();
+  if (val === PIN) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('pin-input').value = '';
+    onLogin();
+  } else {
+    const err = document.getElementById('login-err');
+    err.style.display = 'block';
+    document.getElementById('pin-input').value = '';
+    setTimeout(() => err.style.display = 'none', 3000);
+  }
+}
+
+function logout() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('pin-input').value = '';
+  if (_chatUnsub)       { _chatUnsub(); _chatUnsub = null; }
+  if (_tripStatusUnsub) { _tripStatusUnsub(); _tripStatusUnsub = null; }
+  if (_mapUnsub)        { _mapUnsub(); _mapUnsub = null; }
+  _chatListUnsubs.forEach(u => u());
+  _chatListUnsubs = [];
+}
+
+function onLogin() {
+  loadDashboard();
+  loadGuests();
+  loadDrivers();
+  watchUnread();
+  watchTripStatuses();
+  loadPhase();
+  updateClock();
+  setInterval(updateClock, 30000);
+  // Init notification module from notifications.js
+  if (typeof initNotifications === 'function') initNotifications(db);
+}
+
+// ════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════
+function switchTab(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  el.classList.add('active');
+  const labels = {
+    dashboard:'Dashboard', guests:'Guests', transport:'Transport',
+    drivers:'Drivers', events:'Events & Ceremonies', map:'🗺️ Live Map',
+    chat:'Messages', poi:'Places of Interest', settings:'Settings'
+  };
+  document.getElementById('tb-title').textContent = labels[id] || id;
+  if (id === 'transport') loadTransport();
+  if (id === 'chat')      initChatInbox();
+  if (id === 'events')    { loadEvents(); loadPhase(); }
+  if (id === 'poi')       loadPOIs();
+  if (id === 'map') {
+    setTimeout(() => {
+      initLiveMap();
+      if (_leafletMap) _leafletMap.invalidateSize();
+    }, 120);
+  }
+}
+
+function updateClock() {
+  const n = new Date();
+  document.getElementById('tb-time').textContent =
+    n.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}) +
+    ' · ' + n.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+
+// ════════════════════════════════════════════════════════════
+// TRIP STATUS — real-time
+// ════════════════════════════════════════════════════════════
+function watchTripStatuses() {
+  if (_tripStatusUnsub) _tripStatusUnsub();
+  _tripStatusUnsub = db.collection('guests').onSnapshot(snap => {
+    snap.docChanges().forEach(change => {
+      const g = { id: change.doc.id, ...change.doc.data() };
+      guestTripStatus[g.id] = g.transportStatus || null;
+      const cell  = document.getElementById('trip-' + g.id);
+      const dcell = document.getElementById('dash-trip-' + g.id);
+      if (cell)  cell.innerHTML  = tripStatusChip(g.transportStatus);
+      if (dcell) dcell.innerHTML = tripStatusChip(g.transportStatus);
+    });
+    updateTripStats();
+  }, () => {});
+}
+
+function updateTripStats() {
+  const aboard    = Object.values(guestTripStatus).filter(s => s === 'picked_up').length;
+  const delivered = Object.values(guestTripStatus).filter(s => s === 'delivered').length;
+  const sA = document.getElementById('s-aboard');
+  const sD = document.getElementById('s-delivered');
+  if (sA) sA.textContent = aboard;
+  if (sD) sD.textContent = delivered;
+}
+
+function tripStatusChip(status) {
+  if (status === 'picked_up') return '<span class="chip c-blue">🚗 Aboard</span>';
+  if (status === 'delivered') return '<span class="chip c-teal">✓ Delivered</span>';
+  if (status === 'assigned')  return '<span class="chip c-yellow">⏳ Assigned</span>';
+  return '<span class="chip c-gray">—</span>';
+}
+
+// ════════════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════════════
+async function loadDashboard() {
+  try {
+    const [gSnap, dSnap] = await Promise.all([
+      db.collection('guests').orderBy('createdAt','desc').get(),
+      db.collection('drivers').get()
+    ]);
+
+    let total=0, opened=0, confirmed=0, declined=0, transport=0;
+    allGuests = [];
+    gSnap.forEach(doc => {
+      const g = {id: doc.id, ...doc.data()};
+      allGuests.push(g);
+      guestTripStatus[g.id] = g.transportStatus || null;
+      total++;
+      if (g.invitationOpened) opened++;
+      if (g.attendance === 'yes') confirmed++;
+      if (g.attendance === 'no')  declined++;
+      if (g.assignedDriverId)     transport++;
+    });
+
+    allDrivers = dSnap.docs.map(d => ({id: d.id, ...d.data()}));
+    const activeDrivers = allDrivers.filter(d => d.status !== 'off').length;
+    const aboard    = Object.values(guestTripStatus).filter(s => s === 'picked_up').length;
+    const delivered = Object.values(guestTripStatus).filter(s => s === 'delivered').length;
+
+    setEl('s-total', total); setEl('s-opened', opened);
+    setEl('s-confirmed', confirmed); setEl('s-declined', declined);
+    setEl('s-transport', transport); setEl('s-drivers', activeDrivers);
+    setEl('s-aboard', aboard); setEl('s-delivered', delivered);
+
+    const tbody = document.getElementById('dash-tbody');
+    tbody.innerHTML = '';
+    allGuests.slice(0, 30).forEach(g => {
+      const driver = allDrivers.find(d => d.id === g.assignedDriverId);
+      tbody.insertRow().innerHTML = `
+        <td><strong>${esc(g.name)}</strong></td>
+        <td>${g.invitationOpened
+          ? '<span class="chip c-green">Opened</span>'
+          : '<span class="chip c-yellow">Pending</span>'}</td>
+        <td>${rsvpChip(g.attendance)}</td>
+        <td style="text-align:center">${g.guests || '—'}</td>
+        <td>${driver
+          ? `<span class="chip c-blue">${esc(driver.name)}</span>`
+          : '<span class="chip c-gray">None</span>'}</td>
+        <td id="dash-trip-${g.id}">${tripStatusChip(g.transportStatus)}</td>
+        <td><button class="btn btn-ghost btn-sm" onclick="copyLink('${g.id}', this)">⎘ Copy</button></td>
+      `;
+    });
+  } catch(e) { console.error('Dashboard:', e); }
+}
+
+// ════════════════════════════════════════════════════════════
+// GUESTS
+// ════════════════════════════════════════════════════════════
+async function loadGuests() {
+  try {
+    const snap = await db.collection('guests').orderBy('createdAt','desc').get();
+    allGuests = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    renderGuests(allGuests);
+    populateChatGuestDropdowns();
+  } catch(e) { console.error('Guests:', e); }
+}
+
+function renderGuests(list) {
+  document.getElementById('guest-count').textContent = `(${list.length})`;
+  const tbody = document.getElementById('guests-tbody');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted)">No guests yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = '';
+  list.forEach(g => {
+    const link = `${location.origin}/invitado.html?guestId=${g.id}`;
+    tbody.insertRow().innerHTML = `
+      <td><strong>${esc(g.name)}</strong></td>
+      <td class="mono">${esc(g.email || '—')}</td>
+      <td>${g.invitationOpened
+        ? '<span class="chip c-green">Opened</span>'
+        : '<span class="chip c-yellow">Pending</span>'}</td>
+      <td>${rsvpChip(g.attendance)}</td>
+      <td>
+        <input class="mono" type="text" value="${esc(link)}" readonly onclick="this.select()"
+          style="width:180px;padding:.22rem .4rem;border:1px solid var(--border);border-radius:4px;font-size:.68rem;background:#fafbfc"/>
+      </td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-ghost btn-sm" onclick="copyLink('${g.id}', this)">⎘ Copy</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteGuest('${g.id}')">Del</button>
+      </td>
+    `;
+  });
+}
+
+function filterGuests() {
+  const q = document.getElementById('guest-search').value.toLowerCase();
+  renderGuests(allGuests.filter(g =>
+    (g.name + ' ' + (g.email || '')).toLowerCase().includes(q)
+  ));
+}
+
+async function addGuest() {
+  const name  = document.getElementById('g-name').value.trim();
+  const email = document.getElementById('g-email').value.trim();
+  const phone = document.getElementById('g-phone').value.trim();
+  const notes = document.getElementById('g-notes').value.trim();
+  const lang  = document.getElementById('g-lang').value;
+  const type  = document.getElementById('g-type').value;
+  const country = document.getElementById('g-country').value.trim();
+  if (!name || !email) { alert('Name and email are required.'); return; }
+  try {
+    const ref = await db.collection('guests').add({
+      name, email, phone, notes,
+      preferredLanguage: lang,
+      guestType: type,
+      country: country || '',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      invitationOpened: false,
+      attendance: null,
+      assignedDriverId: null,
+      transportStatus: null,
+      invitationPhase: 'pre_travel'
+    });
+    const link = `${location.origin}/invitado.html?guestId=${ref.id}`;
+    await navigator.clipboard.writeText(link).catch(()=>{});
+    alert(`✅ Guest added!\nInvitation link copied:\n${link}`);
+    ['g-name','g-email','g-phone','g-notes','g-country'].forEach(id => document.getElementById(id).value = '');
+    await loadGuests();
+    loadDashboard();
+  } catch(e) { console.error(e); alert('Error adding guest.'); }
+}
+
+async function deleteGuest(id) {
+  if (!confirm('Delete this guest? This cannot be undone.')) return;
+  try {
+    await db.collection('guests').doc(id).delete();
+    await loadGuests();
+    loadDashboard();
+  } catch(e) { console.error(e); }
+}
+
+// ════════════════════════════════════════════════════════════
+// DRIVERS
+// ════════════════════════════════════════════════════════════
+async function loadDrivers() {
+  try {
+    const snap = await db.collection('drivers').orderBy('createdAt','desc').get();
+    allDrivers = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    renderDrivers();
+    populateDriverDropdown();
+  } catch(e) { console.error('Drivers:', e); }
+}
+
+function renderDrivers() {
+  document.getElementById('driver-count').textContent = `(${allDrivers.length})`;
+  const tbody = document.getElementById('drivers-tbody');
+  if (!allDrivers.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted)">No drivers registered yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = '';
+  allDrivers.forEach(d => {
+    const guestCount = allGuests.filter(g => g.assignedDriverId === d.id).length;
+    const statusChip = d.status === 'available' ? 'c-green'
+                     : d.status === 'on-duty'   ? 'c-blue' : 'c-gray';
+    const pinLabel = d.pin
+      ? `<span class="chip c-teal" title="PIN set">🔐 Set</span>`
+      : `<span class="chip c-red">No PIN</span>`;
+    tbody.insertRow().innerHTML = `
+      <td><strong>${esc(d.name)}</strong></td>
+      <td class="mono">${esc(d.phone)}</td>
+      <td>${esc(d.vehicle || '—')}</td>
+      <td class="mono">${esc(d.plate || '—')}</td>
+      <td style="text-align:center">${d.capacity || 4}</td>
+      <td><span class="chip ${statusChip}">${d.status}</span></td>
+      <td>${pinLabel}</td>
+      <td style="text-align:center">${guestCount}</td>
+      <td style="white-space:nowrap;display:flex;gap:.3rem;flex-wrap:wrap;padding:.5rem .6rem">
+        <button class="btn btn-primary btn-sm" onclick="showQR('${d.id}')">📱 QR</button>
+        <button class="btn btn-ghost btn-sm" onclick="openDriverPage('${d.id}')">🔗</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteDriver('${d.id}')">Del</button>
+      </td>
+    `;
+  });
+}
+
+function populateDriverDropdown() {
+  ['assign-driver','eam-driver'].forEach(selId => {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— No driver —</option>';
+    allDrivers.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.id;
+      o.textContent = `${d.name} · ${d.vehicle || 'Vehicle N/A'}`;
+      sel.appendChild(o);
+    });
+    if (cur) sel.value = cur;
+  });
+}
+
+async function addDriver() {
+  const name  = document.getElementById('d-name').value.trim();
+  const phone = document.getElementById('d-phone').value.trim();
+  const pin   = document.getElementById('d-pin').value.trim();
+  if (!name || !phone) { alert('Name and phone are required.'); return; }
+  if (pin && (pin.length < 4 || isNaN(pin))) { alert('PIN must be 4–6 numeric digits.'); return; }
+  try {
+    await db.collection('drivers').add({
+      name, phone,
+      vehicle:  document.getElementById('d-vehicle').value.trim(),
+      plate:    document.getElementById('d-plate').value.trim(),
+      capacity: parseInt(document.getElementById('d-capacity').value) || 4,
+      status:   document.getElementById('d-status').value,
+      notes:    document.getElementById('d-notes').value.trim(),
+      pin: pin || null,
+      tripStatus: null,
+      lat: null, lng: null, locationAt: null,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    ['d-name','d-phone','d-vehicle','d-plate','d-notes','d-pin'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('d-capacity').value = '4';
+    await loadDrivers();
+    populateDriverDropdown();
+  } catch(e) { console.error(e); alert('Error adding driver.'); }
+}
+
+async function deleteDriver(id) {
+  if (!confirm('Remove this driver? Assigned guests will be unlinked.')) return;
+  const linked = allGuests.filter(g => g.assignedDriverId === id);
+  const batch = db.batch();
+  linked.forEach(g => batch.update(db.collection('guests').doc(g.id), {
+    assignedDriverId: null, transportStatus: null
+  }));
+  await batch.commit();
+  await db.collection('drivers').doc(id).delete();
+  await loadDrivers();
+  await loadGuests();
+}
+
+function openDriverPage(driverId) {
+  window.open(`${location.origin}/chofer.html?driverId=${driverId}`, '_blank');
+}
+
+// ════════════════════════════════════════════════════════════
+// QR MODAL
+// ════════════════════════════════════════════════════════════
+let _qrDriverId = null;
+let _qrInstance = null;
+
+function showQR(driverId) {
+  const d = allDrivers.find(x => x.id === driverId);
+  if (!d) return;
+  _qrDriverId = driverId;
+  document.getElementById('qr-driver-name').textContent = d.name;
+  const link = `${location.origin}/chofer.html?driverId=${driverId}`;
+  document.getElementById('qr-link-input').value = link;
+  document.getElementById('qr-pin-status').textContent = '';
+  document.getElementById('qr-pin-input').value = '';
+  document.getElementById('qr-current-pin-hint').textContent = d.pin
+    ? `Current PIN: ${'•'.repeat(d.pin.length)} (${d.pin.length} digits)`
+    : 'No PIN assigned yet';
+  const wrap = document.getElementById('qr-canvas-wrap');
+  wrap.innerHTML = '';
+  _qrInstance = new QRCode(wrap, {
+    text: link, width: 200, height: 200,
+    colorDark: '#111827', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+  document.getElementById('qr-modal').style.display = 'flex';
+}
+
+function closeQR() {
+  document.getElementById('qr-modal').style.display = 'none';
+  _qrDriverId = null; _qrInstance = null;
+}
+
+function copyQRLink() {
+  const link = document.getElementById('qr-link-input').value;
+  const btn = document.getElementById('qr-copy-btn');
+  navigator.clipboard.writeText(link).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = orig, 1800);
+  }).catch(() => prompt('Copy this link:', link));
+}
+
+async function saveDriverPIN() {
+  if (!_qrDriverId) return;
+  const pin = document.getElementById('qr-pin-input').value.trim();
+  if (!pin || pin.length < 4 || isNaN(pin)) { alert('PIN must be 4–6 numeric digits.'); return; }
+  try {
+    await db.collection('drivers').doc(_qrDriverId).update({ pin });
+    const idx = allDrivers.findIndex(d => d.id === _qrDriverId);
+    if (idx >= 0) allDrivers[idx].pin = pin;
+    document.getElementById('qr-pin-status').textContent = '✓ PIN saved successfully';
+    document.getElementById('qr-pin-input').value = '';
+    document.getElementById('qr-current-pin-hint').textContent =
+      `Current PIN: ${'•'.repeat(pin.length)} (${pin.length} digits)`;
+    renderDrivers();
+  } catch(e) { alert('Error saving PIN.'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// TRANSPORT
+// ════════════════════════════════════════════════════════════
+async function loadTransport() {
+  if (!allGuests.length)  await loadGuests();
+  if (!allDrivers.length) await loadDrivers();
+  populateDriverDropdown();
+
+  const assigned = allGuests.filter(g => g.assignedDriverId).length;
+  document.getElementById('transport-progress').textContent = `${assigned} / ${allGuests.length} assigned`;
+
+  const tbody = document.getElementById('transport-tbody');
+  tbody.innerHTML = '';
+  if (!allGuests.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted)">No guests yet</td></tr>';
+    return;
+  }
+  allGuests.forEach(g => {
+    const driver = allDrivers.find(d => d.id === g.assignedDriverId);
+    const typeChip = g.destinationType === 'hotel'     ? 'c-blue'
+                   : g.destinationType === 'apartment' ? 'c-green'
+                   : g.destinationType === 'venue'     ? 'c-purple' : 'c-gray';
+    const pickupFmt = g.pickupTime
+      ? new Date(g.pickupTime).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})
+      : '—';
+    tbody.insertRow().innerHTML = `
+      <td><strong>${esc(g.name)}</strong>${g.guests ? `<br><span class="mono">${g.guests} pax</span>` : ''}</td>
+      <td>${rsvpChip(g.attendance)}</td>
+      <td>${driver ? `<span class="chip c-blue">${esc(driver.name)}</span>` : '<span class="chip c-gray">Unassigned</span>'}</td>
+      <td>${g.destination ? esc(g.destination) : '—'}</td>
+      <td>${g.destinationType ? `<span class="chip ${typeChip}">${g.destinationType}</span>` : '—'}</td>
+      <td class="mono" style="max-width:140px;white-space:normal;font-size:.68rem">${g.destinationAddress ? esc(g.destinationAddress) : '—'}</td>
+      <td class="mono" style="font-size:.68rem;white-space:nowrap">${pickupFmt}</td>
+      <td id="trip-${g.id}">${tripStatusChip(g.transportStatus || guestTripStatus[g.id])}</td>
+      <td><button class="btn btn-primary btn-sm" onclick="openAssign('${g.id}')">✎ Edit</button></td>
+    `;
+  });
+}
+
+function openAssign(guestId) {
+  const g = allGuests.find(x => x.id === guestId);
+  if (!g) return;
+  _assignId = guestId;
+  document.getElementById('assign-guest-name').textContent = g.name;
+  document.getElementById('assign-driver').value  = g.assignedDriverId || '';
+  document.getElementById('assign-type').value    = g.destinationType || 'hotel';
+  document.getElementById('assign-dest').value    = g.destination || '';
+  document.getElementById('assign-addr').value    = g.destinationAddress || '';
+  document.getElementById('assign-pickup').value  = g.pickupLocation || '';
+  document.getElementById('assign-notes').value   = g.transportNotes || '';
+  document.getElementById('assign-time').value    = g.pickupTime || '';
+  const panel = document.getElementById('assign-panel');
+  panel.style.display = 'block';
+  setTimeout(() => panel.scrollIntoView({behavior:'smooth', block:'start'}), 50);
+}
+
+function closeAssign() {
+  document.getElementById('assign-panel').style.display = 'none';
+  _assignId = null;
+}
+
+async function saveAssignment() {
+  if (!_assignId) return;
+  const driverId = document.getElementById('assign-driver').value;
+  const data = {
+    assignedDriverId:   driverId || null,
+    destinationType:    document.getElementById('assign-type').value,
+    destination:        document.getElementById('assign-dest').value.trim(),
+    destinationAddress: document.getElementById('assign-addr').value.trim(),
+    pickupLocation:     document.getElementById('assign-pickup').value.trim(),
+    pickupTime:         document.getElementById('assign-time').value,
+    transportNotes:     document.getElementById('assign-notes').value.trim(),
+    transportStatus:    driverId ? 'assigned' : null
+  };
+  try {
+    await db.collection('guests').doc(_assignId).update(data);
+    const idx = allGuests.findIndex(g => g.id === _assignId);
+    if (idx >= 0) allGuests[idx] = {...allGuests[idx], ...data};
+    closeAssign();
+    loadTransport();
+    loadDashboard();
+  } catch(e) { console.error(e); alert('Error saving assignment.'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// EVENTS & CEREMONIES
+// ════════════════════════════════════════════════════════════
+async function loadEvents() {
+  try {
+    const snap = await db.collection('events').orderBy('date','asc').get();
+    allEvents = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    renderEvents();
+  } catch(e) { console.error('Events:', e); }
+}
+
+function renderEvents() {
+  const container = document.getElementById('events-list');
+  if (!allEvents.length) {
+    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-size:.85rem">No events yet. Create your first ceremony above.</div>';
+    return;
+  }
+  container.innerHTML = '';
+  allEvents.forEach(ev => {
+    const dt = ev.date ? new Date(ev.date + 'T' + (ev.time || '00:00')) : null;
+    const dayNum = dt ? dt.getDate() : '—';
+    const month  = dt ? dt.toLocaleDateString('en-US',{month:'short'}).toUpperCase() : '—';
+    const timeStr = dt ? dt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
+
+    const div = document.createElement('div');
+    div.className = 'event-card';
+    div.innerHTML = `
+      <div class="event-date-badge">
+        <div class="edb-day">${dayNum}</div>
+        <div class="edb-month">${month}</div>
+      </div>
+      <div class="event-info">
+        <div class="ev-name">${esc(ev.name)}</div>
+        <div class="ev-meta">
+          ${timeStr ? `<span>🕐 ${timeStr}</span>` : ''}
+          ${ev.venue ? `<span>📍 ${esc(ev.venue)}</span>` : ''}
+          <span class="chip ${eventTypeChip(ev.type)}">${ev.type || 'event'}</span>
+        </div>
+        ${ev.address ? `<div class="ev-desc" style="margin-bottom:.35rem">📌 ${esc(ev.address)}</div>` : ''}
+        ${ev.description ? `<div class="ev-desc">${esc(ev.description)}</div>` : ''}
+        <!-- Guest RSVP list for this event -->
+        <div id="ev-rsvp-${ev.id}" style="margin-top:.5rem"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.4rem">
+        <button class="btn btn-primary btn-sm" onclick="openEventAssign('${ev.id}')">+ Assign Transport</button>
+        <button class="btn btn-ghost btn-sm" onclick="loadEventRSVPs('${ev.id}')">👥 RSVPs</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEvent('${ev.id}')">Del</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function eventTypeChip(type) {
+  if (type === 'main') return 'c-purple';
+  if (type === 'sangeet') return 'c-blue';
+  if (type === 'mehendi') return 'c-green';
+  if (type === 'reception') return 'c-teal';
+  return 'c-gray';
+}
+
+async function addEvent() {
+  const name = document.getElementById('ev-name').value.trim();
+  const date = document.getElementById('ev-date').value;
+  if (!name || !date) { alert('Name and date are required.'); return; }
+  try {
+    await db.collection('events').add({
+      name,
+      type:        document.getElementById('ev-type').value,
+      date,
+      time:        document.getElementById('ev-time').value,
+      venue:       document.getElementById('ev-venue').value.trim(),
+      address:     document.getElementById('ev-address').value.trim(),
+      lat:         parseFloat(document.getElementById('ev-lat').value) || null,
+      lng:         parseFloat(document.getElementById('ev-lng').value) || null,
+      description: document.getElementById('ev-desc').value.trim(),
+      createdAt:   firebase.firestore.FieldValue.serverTimestamp()
+    });
+    ['ev-name','ev-date','ev-time','ev-venue','ev-address','ev-lat','ev-lng','ev-desc']
+      .forEach(id => document.getElementById(id).value = '');
+    await loadEvents();
+  } catch(e) { console.error(e); alert('Error creating event.'); }
+}
+
+async function deleteEvent(id) {
+  if (!confirm('Delete this event?')) return;
+  try {
+    await db.collection('events').doc(id).delete();
+    await loadEvents();
+  } catch(e) { console.error(e); }
+}
+
+async function loadEventRSVPs(eventId) {
+  const container = document.getElementById('ev-rsvp-' + eventId);
+  try {
+    const snap = await db.collection('events').doc(eventId).collection('eventRsvp').get();
+    if (snap.empty) { container.innerHTML = '<span style="font-size:.7rem;color:var(--muted)">No RSVPs yet</span>'; return; }
+    let html = '<div style="margin-top:.5rem;display:flex;flex-wrap:wrap;gap:.3rem">';
+    snap.forEach(doc => {
+      const d = doc.data();
+      const g = allGuests.find(g => g.id === doc.id);
+      const name = g ? g.name : doc.id;
+      const chip = d.attending === false
+        ? `<span class="chip c-red" title="Declined">${esc(name)} ✗</span>`
+        : `<span class="chip c-green" title="Attending">${esc(name)} ✓</span>`;
+      html += chip;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  } catch(e) { container.innerHTML = '<span style="font-size:.7rem;color:var(--red)">Error loading RSVPs</span>'; }
+}
+
+// Event transport assign modal
+function openEventAssign(eventId) {
+  _eventAssignEventId = eventId;
+  const ev = allEvents.find(e => e.id === eventId);
+  document.getElementById('eam-title').textContent = ev ? `Assign Transport` : 'Assign Transport';
+  document.getElementById('eam-sub').textContent = ev ? `${ev.name} · Driver Assignment` : 'Event · Driver Assignment';
+
+  // Populate guest dropdown
+  const gSel = document.getElementById('eam-guest');
+  gSel.innerHTML = '<option value="">— Select guest —</option>';
+  allGuests.forEach(g => {
+    const o = document.createElement('option');
+    o.value = g.id; o.textContent = g.name;
+    gSel.appendChild(o);
+  });
+
+  populateDriverDropdown();
+  document.getElementById('eam-pickup').value = '';
+  document.getElementById('eam-time').value = ev?.date && ev?.time ? ev.date + 'T' + ev.time : '';
+  document.getElementById('event-assign-modal').style.display = 'flex';
+}
+
+function closeEventAssign() {
+  document.getElementById('event-assign-modal').style.display = 'none';
+  _eventAssignEventId = null;
+}
+
+async function saveEventAssignment() {
+  if (!_eventAssignEventId) return;
+  const guestId  = document.getElementById('eam-guest').value;
+  const driverId = document.getElementById('eam-driver').value;
+  if (!guestId || !driverId) { alert('Select both a guest and a driver.'); return; }
+  try {
+    await db.collection('events').doc(_eventAssignEventId)
+      .collection('eventTransport').doc(guestId).set({
+        driverId,
+        guestId,
+        pickupLocation: document.getElementById('eam-pickup').value.trim(),
+        pickupTime:     document.getElementById('eam-time').value,
+        status: 'assigned',
+        assignedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+    // Notify guest via Firestore flag
+    await db.collection('guests').doc(guestId).collection('notifications').add({
+      type: 'event_transport_assigned',
+      eventId: _eventAssignEventId,
+      message: `Your transport for ${allEvents.find(e=>e.id===_eventAssignEventId)?.name||'the event'} has been arranged!`,
+      read: false,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    closeEventAssign();
+    alert('✅ Transport assigned and guest notified.');
+  } catch(e) { console.error(e); alert('Error saving event assignment.'); }
+}
+
+// ════════════════════════════════════════════════════════════
+// LIVE MAP
+// ════════════════════════════════════════════════════════════
+function driverMarkerIcon(tripStatus) {
+  const color = tripStatus === 'picked_up' ? '#16a34a'
+              : tripStatus === 'en_route'  ? '#2a6e7c'
+              : tripStatus === 'delivered' ? '#7e22ce'
+              :                              '#c4933f';
+  return L.divIcon({
+    html: `<div style="background:${color};color:white;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:16px;border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,.3)">🚗</div>`,
+    iconSize:[34,34], iconAnchor:[17,17], className:''
+  });
+}
+
+function guestMarkerIcon() {
+  return L.divIcon({
+    html: `<div style="background:#ef4444;color:white;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,.3)">👤</div>`,
+    iconSize:[30,30], iconAnchor:[15,15], className:''
+  });
+}
+
+function eventMarkerIcon() {
+  return L.divIcon({
+    html: `<div style="background:#f59e0b;color:white;border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:16px;border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,.3)">🎉</div>`,
+    iconSize:[34,34], iconAnchor:[17,34], className:''
+  });
+}
+
+function initLiveMap() {
+  if (_mapInited) return;
+  _mapInited = true;
+
+  // World view to accommodate international guests
+  _leafletMap = L.map('live-map', { worldCopyJump: true }).setView([20, 0], 2);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(_leafletMap);
+
+  watchDriverLocationsOnMap();
+  watchGuestLocationsOnMap();
+  placeEventPinsOnMap();
+}
+
+function watchDriverLocationsOnMap() {
+  if (_mapUnsub) { _mapUnsub(); }
+  _mapUnsub = db.collection('drivers').onSnapshot(snap => {
+    snap.forEach(doc => {
+      const d = { id: doc.id, ...doc.data() };
+      const idx = allDrivers.findIndex(x => x.id === d.id);
+      if (idx >= 0) allDrivers[idx] = {...allDrivers[idx], ...d};
+      else allDrivers.push(d);
+
+      if (!_layerState.drivers) return;
+      if (d.lat && d.lng) {
+        const icon = driverMarkerIcon(d.tripStatus);
+        const lastUpd = d.locationAt
+          ? new Date(d.locationAt.toDate()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
+          : '—';
+        const popup = `<strong>${d.name}</strong><br>${d.vehicle||''}<br>Status: ${d.tripStatus||'waiting'}<br>GPS: ${lastUpd}`;
+        if (_driverMarkers[d.id]) {
+          _driverMarkers[d.id].setLatLng([d.lat, d.lng]);
+          _driverMarkers[d.id].setIcon(icon);
+          _driverMarkers[d.id].setPopupContent(popup);
+        } else {
+          _driverMarkers[d.id] = L.marker([d.lat, d.lng], { icon })
+            .bindPopup(popup).addTo(_leafletMap);
+        }
+      }
+    });
+    renderMapDriverList();
+  }, () => {});
+}
+
+function watchGuestLocationsOnMap() {
+  // Watch guests who are sharing location (in transit / arriving)
+  db.collection('guests').onSnapshot(snap => {
+    snap.forEach(doc => {
+      const g = { id: doc.id, ...doc.data() };
+      if (!_layerState.guests) return;
+      if (g.currentLat && g.currentLng) {
+        const icon = guestMarkerIcon();
+        const popup = `<strong>${g.name}</strong><br>📍 Guest location`;
+        if (_guestMarkers[g.id]) {
+          _guestMarkers[g.id].setLatLng([g.currentLat, g.currentLng]);
+        } else {
+          _guestMarkers[g.id] = L.marker([g.currentLat, g.currentLng], { icon })
+            .bindPopup(popup).addTo(_leafletMap);
+        }
+      } else {
+        if (_guestMarkers[g.id]) {
+          _leafletMap.removeLayer(_guestMarkers[g.id]);
+          delete _guestMarkers[g.id];
+        }
+      }
+    });
+  }, () => {});
+}
+
+async function placeEventPinsOnMap() {
+  if (!_layerState.arrivals) return;
+  try {
+    const snap = await db.collection('events').get();
+    snap.forEach(doc => {
+      const ev = { id: doc.id, ...doc.data() };
+      if (ev.lat && ev.lng) {
+        const icon = eventMarkerIcon();
+        const popup = `<strong>${ev.name}</strong><br>📍 ${ev.venue||''}<br>${ev.date||''} ${ev.time||''}`;
+        if (_eventMarkers[ev.id]) {
+          _eventMarkers[ev.id].setLatLng([ev.lat, ev.lng]);
+        } else {
+          _eventMarkers[ev.id] = L.marker([ev.lat, ev.lng], { icon })
+            .bindPopup(popup).addTo(_leafletMap);
+        }
+      }
+    });
+  } catch(e) {}
+}
+
+function toggleLayer(layer) {
+  _layerState[layer] = !_layerState[layer];
+  const el = document.getElementById('lt-' + layer);
+  el.classList.toggle('on', _layerState[layer]);
+  el.classList.toggle('off', !_layerState[layer]);
+
+  if (layer === 'drivers') {
+    Object.values(_driverMarkers).forEach(m => {
+      _layerState.drivers ? _leafletMap.addLayer(m) : _leafletMap.removeLayer(m);
+    });
+  }
+  if (layer === 'guests') {
+    Object.values(_guestMarkers).forEach(m => {
+      _layerState.guests ? _leafletMap.addLayer(m) : _leafletMap.removeLayer(m);
+    });
+  }
+  if (layer === 'arrivals') {
+    Object.values(_eventMarkers).forEach(m => {
+      _layerState.arrivals ? _leafletMap.addLayer(m) : _leafletMap.removeLayer(m);
+    });
+    if (_layerState.arrivals) placeEventPinsOnMap();
+  }
+}
+
+function renderMapDriverList() {
+  const container = document.getElementById('map-driver-list');
+  if (!container) return;
+  container.innerHTML = '';
+  allDrivers.forEach(d => {
+    const hasLoc = d.lat && d.lng;
+    const lastUpd = d.locationAt
+      ? new Date(d.locationAt.toDate ? d.locationAt.toDate() : d.locationAt)
+          .toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
+      : '—';
+    const statusLabel =
+      d.tripStatus === 'picked_up' ? '🟢 Passenger aboard'
+      : d.tripStatus === 'en_route'  ? '🔵 En route to pickup'
+      : d.tripStatus === 'delivered' ? '✅ Delivered'
+      : '⏳ Waiting';
+    const guests = allGuests.filter(g => g.assignedDriverId === d.id);
+    container.innerHTML += `
+      <div class="map-driver-card">
+        <div class="dc-name">
+          ${hasLoc ? '<span class="loc-pulse"></span>' : '<span class="loc-offline"></span>'}
+          🚗 ${esc(d.name)}
+        </div>
+        <div class="dc-detail">${esc(d.vehicle||'—')} · ${esc(d.plate||'—')}</div>
+        <div class="dc-detail">${hasLoc ? `📍 GPS: ${lastUpd}` : '📍 No location'}</div>
+        <div style="margin-top:.35rem;font-size:.72rem">${statusLabel}</div>
+        ${guests.length ? `<div style="font-size:.65rem;color:var(--muted);margin-top:.2rem">Guests: ${guests.map(g=>esc(g.name)).join(', ')}</div>` : ''}
+        ${hasLoc ? `<button class="btn btn-ghost btn-sm" style="margin-top:.5rem;font-size:.65rem" onclick="flyTo(${d.lat},${d.lng})">🎯 Center</button>` : ''}
+      </div>
+    `;
+  });
+}
+
+function flyTo(lat, lng) {
+  if (_leafletMap) _leafletMap.flyTo([lat, lng], 15, { duration: 1 });
+}
+
+function refreshMap() {
+  if (!_mapInited) {
+    initLiveMap();
+    setTimeout(() => _leafletMap && _leafletMap.invalidateSize(), 200);
+  } else {
+    watchDriverLocationsOnMap();
+    renderMapDriverList();
+    placeEventPinsOnMap();
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// CHAT INBOX
+// ════════════════════════════════════════════════════════════
+function watchUnread() {
+  db.collectionGroup('messages')
+    .where('sender','==','guest')
+    .where('readByAdmin','==',false)
+    .onSnapshot(snap => {
+      const b = document.getElementById('unread-badge');
+      b.style.display = snap.size > 0 ? 'inline' : 'none';
+      b.textContent = snap.size;
+
+      // Also update total unread chip in chat panel
+      const tu = document.getElementById('chat-total-unread');
+      if (tu) {
+        tu.style.display = snap.size > 0 ? 'inline-flex' : 'none';
+        tu.textContent = `${snap.size} unread`;
+      }
+
+      // Push notification for new messages
+      if (snap.size > 0 && typeof showNotification === 'function') {
+        // Only notify if we had 0 before (coarse debounce)
+      }
+    }, () => {});
+}
+
+let _chatInboxInited = false;
+
+function initChatInbox() {
+  if (_chatInboxInited) return;
+  _chatInboxInited = true;
+  _chatListUnsubs.forEach(u => u());
+  _chatListUnsubs = [];
+
+  if (!allGuests.length) {
+    loadGuests().then(() => buildChatInbox());
+  } else {
+    buildChatInbox();
+  }
+}
+
+function buildChatInbox() {
+  const listEl = document.getElementById('chat-list');
+  listEl.innerHTML = '';
+  _chatPreviews = {};
+
+  if (!allGuests.length) {
+    listEl.innerHTML = '<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:.8rem">No guests yet</div>';
+    return;
+  }
+
+  document.getElementById('chat-conv-count').textContent = `(${allGuests.length})`;
+
+  allGuests.forEach(g => {
+    _chatPreviews[g.id] = { name: g.name, lastMsg: '', lastTs: null, unread: 0 };
+    renderChatListItem(g.id);
+
+    // Real-time listener for each guest's last message + unread count
+    const unsub = db.collection('chats').doc(g.id)
+      .collection('messages')
+      .orderBy('timestamp', 'desc')
+      .limit(1)
+      .onSnapshot(snap => {
+        if (!snap.empty) {
+          const m = snap.docs[0].data();
+          _chatPreviews[g.id].lastMsg = m.message || '';
+          _chatPreviews[g.id].lastTs  = m.timestamp;
+          _chatPreviews[g.id].sender  = m.sender;
+        }
+        renderChatListItem(g.id);
+      }, () => {});
+
+    // Unread count listener
+    const unreadUnsub = db.collection('chats').doc(g.id)
+      .collection('messages')
+      .where('sender','==','guest')
+      .where('readByAdmin','==',false)
+      .onSnapshot(snap => {
+        _chatPreviews[g.id].unread = snap.size;
+        renderChatListItem(g.id);
+      }, () => {});
+
+    _chatListUnsubs.push(unsub, unreadUnsub);
+  });
+}
+
+function renderChatListItem(guestId) {
+  const listEl = document.getElementById('chat-list');
+  const preview = _chatPreviews[guestId];
+  if (!preview) return;
+
+  let existing = document.getElementById('chat-item-' + guestId);
+  const isActive = currentChatId === guestId;
+  const hasUnread = preview.unread > 0;
+
+  const tsStr = preview.lastTs
+    ? (() => {
+        const d = preview.lastTs.toDate ? preview.lastTs.toDate() : new Date(preview.lastTs);
+        const now = new Date();
+        const diff = now - d;
+        if (diff < 86400000) return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+        return d.toLocaleDateString([],{month:'short',day:'numeric'});
+      })()
+    : '';
+
+  const msgPreview = preview.lastMsg
+    ? (preview.sender === 'admin' ? '↩ ' : '') + esc(preview.lastMsg).substring(0, 38) + (preview.lastMsg.length > 38 ? '…' : '')
+    : '<em style="opacity:.5">No messages</em>';
+
+  const html = `
+    <div class="chat-item${isActive ? ' active' : ''}${hasUnread ? ' unread' : ''}"
+      id="chat-item-${guestId}" onclick="openChatConversation('${guestId}')">
+      <div class="ci-name">
+        ${esc(preview.name)}
+        ${hasUnread ? `<span class="ci-unread-count">${preview.unread}</span>` : ''}
+        <span class="ci-time">${tsStr}</span>
+      </div>
+      <div class="ci-preview">${msgPreview}</div>
+    </div>
+  `;
+
+  if (existing) {
+    existing.outerHTML = html;
+  } else {
+    listEl.insertAdjacentHTML('beforeend', html);
+  }
+}
+
+function openChatConversation(guestId) {
+  // Deactivate old
+  document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
+  const item = document.getElementById('chat-item-' + guestId);
+  if (item) item.classList.add('active');
+
+  currentChatId = guestId;
+  const guest = allGuests.find(g => g.id === guestId);
+
+  document.getElementById('chat-no-select').style.display = 'none';
+  const activeArea = document.getElementById('chat-active-area');
+  activeArea.style.display = 'flex';
+
+  document.getElementById('cmh-name').textContent = guest ? guest.name : guestId;
+  document.getElementById('cmh-status').textContent = guest
+    ? `${guest.email || ''}${guest.phone ? ' · ' + guest.phone : ''}`
+    : '';
+
+  if (_chatUnsub) { _chatUnsub(); _chatUnsub = null; }
+
+  const msgDiv = document.getElementById('chat-messages');
+  msgDiv.innerHTML = '<div style="color:var(--muted);font-size:.8rem;padding:1rem;text-align:center">Connecting…</div>';
+
+  _chatUnsub = db.collection('chats').doc(guestId)
+    .collection('messages')
+    .orderBy('timestamp','asc')
+    .onSnapshot(snap => {
+      msgDiv.innerHTML = '';
+      if (snap.empty) {
+        msgDiv.innerHTML = '<div style="color:var(--muted);font-size:.8rem;padding:1rem;text-align:center">No messages yet</div>';
+        return;
+      }
+      const batch = db.batch();
+      let hasUnread = false;
+      snap.forEach(doc => {
+        const m = doc.data();
+        const ts = m.timestamp
+          ? new Date(m.timestamp.toDate()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})
+          : '';
+        const el = document.createElement('div');
+        el.className = `msg ${m.sender}`;
+        el.innerHTML = `${esc(m.message)}<div class="msg-ts">${ts}</div>`;
+        msgDiv.appendChild(el);
+        if (m.sender === 'guest' && m.readByAdmin === false) {
+          batch.update(doc.ref, {readByAdmin: true});
+          hasUnread = true;
+        }
+      });
+      if (hasUnread) batch.commit().catch(()=>{});
+      msgDiv.scrollTop = msgDiv.scrollHeight;
+    }, e => console.error('Chat:', e));
+}
+
+async function sendReply() {
+  const msg = document.getElementById('admin-msg').value.trim();
+  if (!msg || !currentChatId) return;
+  document.getElementById('admin-msg').value = '';
+  await db.collection('chats').doc(currentChatId).collection('messages').add({
+    sender: 'admin', message: msg,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    readByAdmin: true
+  });
+
+  // Push notification to guest (via Firestore notification flag)
+  await db.collection('guests').doc(currentChatId).collection('notifications').add({
+    type: 'new_message',
+    message: msg,
+    read: false,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(()=>{});
+}
+
+function populateChatGuestDropdowns() {
+  // Rebuild chat inbox if it was already initialized
+  if (_chatInboxInited) {
+    _chatInboxInited = false;
+    if (document.getElementById('panel-chat').classList.contains('active')) {
+      initChatInbox();
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// PLACES OF INTEREST
+// ════════════════════════════════════════════════════════════
+const POI_ICONS = {
+  beach:'🏖️', temple:'🛕', restaurant:'🍽️', market:'🛍️',
+  nature:'🌿', hotel:'🏨', transport:'🚌', medical:'🏥', other:'📌'
+};
+
+async function loadPOIs() {
+  try {
+    const snap = await db.collection('poi').orderBy('createdAt','asc').get();
+    allPOIs = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    renderPOIs();
+  } catch(e) { console.error('POI:', e); }
+}
+
+function renderPOIs() {
+  const grid = document.getElementById('poi-grid');
+  if (!allPOIs.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted);font-size:.85rem">No places added yet. Add places guests might enjoy!</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  allPOIs.forEach(p => {
+    const icon = POI_ICONS[p.category] || '📌';
+    grid.innerHTML += `
+      <div class="poi-card">
+        <div class="poi-icon">${icon}</div>
+        <div class="poi-name">${esc(p.name)}</div>
+        <div class="poi-cat">${p.category || 'place'}</div>
+        ${p.description ? `<div class="poi-desc">${esc(p.description)}</div>` : ''}
+        ${p.address ? `<div class="poi-desc" style="margin-top:.35rem">📌 ${esc(p.address)}</div>` : ''}
+        ${p.phone ? `<div class="poi-desc">📞 ${esc(p.phone)}</div>` : ''}
+        <div style="margin-top:.75rem;display:flex;gap:.4rem">
+          ${p.lat && p.lng ? `<button class="btn btn-ghost btn-sm" onclick="flyTo(${p.lat},${p.lng});switchTab('map',document.querySelector('[data-label=\\'Live Map\\']'))">🗺️</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="deletePOI('${p.id}')">Del</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+async function addPOI() {
+  const name = document.getElementById('poi-name').value.trim();
+  if (!name) { alert('Name is required.'); return; }
+  try {
+    await db.collection('poi').add({
+      name,
+      category:    document.getElementById('poi-cat').value,
+      lat:         parseFloat(document.getElementById('poi-lat').value) || null,
+      lng:         parseFloat(document.getElementById('poi-lng').value) || null,
+      address:     document.getElementById('poi-addr').value.trim(),
+      phone:       document.getElementById('poi-phone').value.trim(),
+      description: document.getElementById('poi-desc').value.trim(),
+      createdAt:   firebase.firestore.FieldValue.serverTimestamp()
+    });
+    ['poi-name','poi-lat','poi-lng','poi-addr','poi-phone','poi-desc'].forEach(id => document.getElementById(id).value = '');
+    await loadPOIs();
+  } catch(e) { alert('Error adding place.'); }
+}
+
+async function deletePOI(id) {
+  if (!confirm('Remove this place?')) return;
+  try {
+    await db.collection('poi').doc(id).delete();
+    await loadPOIs();
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════════════════════════
+function changePIN() {
+  const p = document.getElementById('new-pin').value.trim();
+  if (!p || p.length < 4 || isNaN(p)) { alert('PIN must be 4–6 numeric digits.'); return; }
+  PIN = p;
+  localStorage.setItem('adminPIN', p);
+  document.getElementById('new-pin').value = '';
+  alert(`✅ Admin PIN updated to: ${p}`);
+}
+
+function requestNotifPermission() {
+  if (typeof requestNotifications === 'function') {
+    requestNotifications().then(granted => {
+      document.getElementById('notif-status').textContent =
+        granted ? '✅ Notifications enabled!' : '❌ Permission denied. Check browser settings.';
+      document.getElementById('notif-btn').textContent = granted ? 'Notifications Active ✓' : 'Retry';
+    });
+  } else {
+    if ('Notification' in window) {
+      Notification.requestPermission().then(p => {
+        document.getElementById('notif-status').textContent =
+          p === 'granted' ? '✅ Notifications enabled!' : '❌ Denied.';
+      });
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// EXPORT CSV
+// ════════════════════════════════════════════════════════════
+function exportCSV() {
+  const headers = ['Name','Email','Phone','Language','Inv.Opened','RSVP','Guests',
+    'Driver','Vehicle','Plate','DestType','Destination','Address',
+    'PickupLocation','PickupTime','TransportNotes','TripStatus'];
+  const rows = allGuests.map(g => {
+    const drv = allDrivers.find(d => d.id === g.assignedDriverId);
+    return [g.name, g.email||'', g.phone||'', g.preferredLanguage||'',
+      g.invitationOpened?'Yes':'No', g.attendance||'—', g.guests||'',
+      drv?.name||'', drv?.vehicle||'', drv?.plate||'',
+      g.destinationType||'', g.destination||'', g.destinationAddress||'',
+      g.pickupLocation||'', g.pickupTime||'', g.transportNotes||'',
+      g.transportStatus||'—'];
+  });
+  const csv = [headers,...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download = `tj-wedding-${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+}
+
+// ════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════
+function copyLink(guestId, btn) {
+  const link = `${location.origin}/invitado.html?guestId=${guestId}`;
+  navigator.clipboard.writeText(link).then(() => {
+    if (btn) { const orig = btn.textContent; btn.textContent = '✓ Copied!'; setTimeout(()=>btn.textContent=orig, 1800); }
+  }).catch(() => prompt('Copy this link:', link));
+}
+
+function esc(t = '') {
+  const d = document.createElement('div');
+  d.textContent = String(t);
+  return d.innerHTML;
+}
+
+function setEl(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function rsvpChip(att) {
+  if (att === 'yes') return '<span class="chip c-green">Yes</span>';
+  if (att === 'no')  return '<span class="chip c-red">No</span>';
+  return '<span class="chip c-gray">—</span>';
+}
+</script>
+</body>
+</html>

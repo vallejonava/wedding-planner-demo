@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tanvi & Justin · Wedding Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0f1923;color:#fff;font-family:'DM Sans',sans-serif}
+
+:root{
+  --sea:#2a6e7c;--sea-l:#4a9dad;--gold:#c4933f;--gold-l:#d4a84f;
+  --sand:#f5e9d3;--bg:#0f1923;--bg2:#162230;--bg3:#1c2e3f;
+  --teal-bg:linear-gradient(135deg,#0d7a6b,#12a48c);
+  --purple-bg:linear-gradient(135deg,#6b35c8,#8b5cf6);
+  --navy-bg:linear-gradient(135deg,#1e3a6e,#2563eb);
+  --gold-bg:linear-gradient(135deg,#92600a,#c4933f);
+  --coral-bg:linear-gradient(135deg,#c93a20,#e85d3c);
+  --muted:rgba(255,255,255,.45);--muted2:rgba(255,255,255,.2)
+}
+
+/* ── SCENE SYSTEM ── */
+#scenes{position:relative;width:100vw;height:100vh}
+.scene{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .8s ease;padding:2.5vw 3vw;display:flex;flex-direction:column;gap:2vh}
+.scene.active{opacity:1;pointer-events:all}
+
+/* ── HEADER BAR (present on all scenes) ── */
+.tv-header{display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.tv-logo{font-family:'Cormorant Garamond',serif;font-size:clamp(1.4rem,2.8vw,2.2rem);font-weight:300;letter-spacing:.04em;color:#fff}
+.tv-logo span{font-style:italic;color:var(--gold-l);margin:0 .3em}
+.tv-date-chip{font-size:clamp(.7rem,1.2vw,.95rem);letter-spacing:.2em;text-transform:uppercase;color:var(--muted);background:var(--bg3);padding:.4em 1.2em;border-radius:30px;border:1px solid var(--muted2)}
+.tv-scene-label{font-size:clamp(.65rem,1vw,.8rem);letter-spacing:.25em;text-transform:uppercase;color:var(--gold-l);background:rgba(196,147,63,.12);padding:.35em 1em;border-radius:20px;border:1px solid rgba(196,147,63,.25)}
+
+/* ── CARD BASE ── */
+.card{border-radius:18px;padding:clamp(1rem,2vw,1.8rem);position:relative;overflow:hidden}
+.card-label{font-size:clamp(.55rem,.9vw,.75rem);letter-spacing:.2em;text-transform:uppercase;opacity:.7;margin-bottom:.5em}
+.card-title{font-family:'DM Sans',sans-serif;font-size:clamp(.85rem,1.4vw,1.1rem);font-weight:600;margin-bottom:.3em}
+.card-num{font-family:'Cormorant Garamond',serif;font-size:clamp(2.5rem,5vw,4.5rem);font-weight:300;line-height:1}
+.card-num-unit{font-size:clamp(1rem,1.8vw,1.5rem);opacity:.7;margin-left:.2em}
+.card-sub{font-size:clamp(.65rem,1vw,.85rem);opacity:.6;margin-top:.4em}
+
+/* ── CARD COLORS ── */
+.c-teal{background:var(--teal-bg)}
+.c-purple{background:var(--purple-bg)}
+.c-navy{background:var(--navy-bg)}
+.c-gold{background:var(--gold-bg)}
+.c-coral{background:var(--coral-bg)}
+.c-dark{background:var(--bg2);border:1px solid rgba(255,255,255,.07)}
+.c-dark-accent{background:var(--bg3);border:1px solid rgba(255,255,255,.08)}
+
+/* ── GRID HELPERS ── */
+.row{display:flex;gap:1.5vw;flex:1}
+.col{display:flex;flex-direction:column;gap:1.5vh}
+.flex-1{flex:1}
+.flex-2{flex:2}
+.flex-3{flex:3}
+
+/* ── COUNTDOWN SCENE ── */
+.countdown-hero{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex:1;text-align:center;gap:1.5vh
+}
+.countdown-names{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,8vw,6rem);font-weight:300;line-height:1;letter-spacing:-.02em}
+.countdown-names .amp{font-style:italic;color:var(--gold-l)}
+.countdown-eyebrow{font-size:clamp(.65rem,1.1vw,.85rem);letter-spacing:.35em;text-transform:uppercase;color:var(--muted)}
+.countdown-divider{width:60px;height:1px;background:var(--gold);opacity:.5}
+.countdown-date{font-family:'Cormorant Garamond',serif;font-size:clamp(1rem,2.2vw,1.6rem);font-style:italic;color:var(--gold-l)}
+.countdown-location{font-size:clamp(.65rem,1vw,.8rem);letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:.2em}
+.countdown-blocks{display:flex;gap:2vw;margin-top:1vh}
+.cd-block{text-align:center;background:var(--bg2);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.5vw 2vw;min-width:10vw}
+.cd-num{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,7vw,5.5rem);font-weight:300;color:#fff;line-height:1}
+.cd-label{font-size:clamp(.5rem,.85vw,.7rem);letter-spacing:.25em;text-transform:uppercase;color:var(--gold-l);margin-top:.3em}
+
+/* ── STATS SCENE ── */
+.stat-big{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,6vw,5rem);font-weight:300;line-height:1;letter-spacing:-.01em}
+.divider-stat{display:flex;gap:1.5vw;align-items:stretch}
+.divider-stat .sep{width:1px;background:rgba(255,255,255,.15);flex-shrink:0}
+
+/* DONUT ── */
+.donut-wrap{position:relative;display:flex;align-items:center;justify-content:center}
+.donut-center{position:absolute;text-align:center}
+.donut-center .dnum{font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,3.5vw,3rem);font-weight:300;line-height:1}
+.donut-center .dlbl{font-size:clamp(.5rem,.75vw,.6rem);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+
+/* ── EVENTS SCENE ── */
+.event-row{display:flex;align-items:center;gap:1.5vw;padding:1.2vh 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.event-row:last-child{border:none}
+.event-badge{border-radius:12px;padding:.5em .9em;text-align:center;min-width:52px;flex-shrink:0}
+.ev-day{font-family:'Cormorant Garamond',serif;font-size:clamp(1.3rem,2.5vw,2rem);font-weight:300;line-height:1}
+.ev-month{font-size:clamp(.45rem,.7vw,.55rem);letter-spacing:.15em;text-transform:uppercase;opacity:.75}
+.event-name{font-family:'Cormorant Garamond',serif;font-size:clamp(1rem,2vw,1.5rem);font-weight:300;color:#fff}
+.event-meta{font-size:clamp(.55rem,.9vw,.72rem);color:var(--muted);margin-top:.2em}
+.event-tag{font-size:clamp(.45rem,.7vw,.58rem);letter-spacing:.12em;text-transform:uppercase;padding:.2em .7em;border-radius:10px;font-weight:600}
+.tag-next{background:rgba(196,147,63,.2);color:var(--gold-l);border:1px solid rgba(196,147,63,.3)}
+.tag-done{background:rgba(22,163,74,.12);color:#4ade80;border:1px solid rgba(22,163,74,.2)}
+
+/* ── ANNOUNCEMENT OVERLAY ── */
+#announcement-overlay{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(10,20,30,.92);
+  display:none;align-items:center;justify-content:center;flex-direction:column;
+  text-align:center;padding:5vw;gap:2vh
+}
+#announcement-overlay.show{display:flex}
+.ann-eyebrow{font-size:clamp(.7rem,1.2vw,.95rem);letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:.5em}
+.ann-text{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,6vw,5rem);font-weight:300;line-height:1.15;max-width:80vw;color:#fff}
+.ann-from{font-size:clamp(.65rem,1vw,.8rem);color:var(--muted);letter-spacing:.15em;margin-top:.8em}
+.ann-dismiss{margin-top:2vh;font-size:clamp(.6rem,.9vw,.75rem);letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.25)}
+
+/* ── PROGRESS BAR ── */
+.progress-track{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width .4s}
+
+/* ── SLIDE INDICATOR ── */
+#slide-dots{position:fixed;bottom:2vh;left:50%;transform:translateX(-50%);display:flex;gap:.6vw;z-index:50}
+.dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .3s;cursor:default}
+.dot.active{background:var(--gold);transform:scale(1.3)}
+
+/* ── LIVE BADGE ── */
+.live-badge{
+  position:fixed;top:2.5vh;right:3vw;z-index:60;
+  font-size:clamp(.5rem,.75vw,.6rem);letter-spacing:.2em;text-transform:uppercase;
+  background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.35);color:#fca5a5;
+  padding:.3em .8em;border-radius:20px;display:flex;align-items:center;gap:.4em
+}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#f87171;animation:livePulse 1.5s ease infinite}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── CLOCK ── */
+.tv-clock{font-family:'Cormorant Garamond',serif;font-size:clamp(1rem,1.8vw,1.4rem);font-weight:300;color:var(--muted);letter-spacing:.05em}
+
+/* ── PHOTO GRID ── */
+.photo-placeholder{background:var(--bg3);border-radius:12px;border:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:clamp(.6rem,.9vw,.75rem);letter-spacing:.15em;text-transform:uppercase;flex:1}
+
+/* ── SCROLL ANIM ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.scene.active .card{animation:fadeUp .6s ease both}
+.scene.active .card:nth-child(2){animation-delay:.1s}
+.scene.active .card:nth-child(3){animation-delay:.18s}
+.scene.active .card:nth-child(4){animation-delay:.26s}
+</style>
+</head>
+<body>
+
+<div class="live-badge"><span class="live-dot"></span>LIVE</div>
+
+<div id="slide-dots">
+  <div class="dot" data-idx="0"></div>
+  <div class="dot" data-idx="1"></div>
+  <div class="dot" data-idx="2"></div>
+  <div class="dot" data-idx="3"></div>
+</div>
+
+<div id="announcement-overlay">
+  <div class="ann-eyebrow">📢 Announcement</div>
+  <div class="ann-text" id="ann-text">Welcome to the celebration!</div>
+  <div class="ann-from" id="ann-from">— From the wedding team</div>
+  <div class="ann-dismiss">Auto-dismiss in <span id="ann-timer">10</span>s</div>
+</div>
+
+<div id="scenes">
+
+  <!-- ══ SCENE 0: COUNTDOWN ══ -->
+  <div class="scene active" id="scene-0">
+    <div class="tv-header">
+      <div class="tv-logo">Tanvi <span>&amp;</span> Justin</div>
+      <div class="tv-clock" id="clock-0">12:00 PM</div>
+      <div class="tv-scene-label">Wedding Countdown</div>
+    </div>
+    <div class="countdown-hero">
+      <div class="countdown-eyebrow">We're getting married</div>
+      <div class="countdown-names">Tanvi <span class="amp">&amp;</span> Justin</div>
+      <div class="countdown-divider"></div>
+      <div class="countdown-date">December 27 – 30, 2026</div>
+      <div class="countdown-location">📍 Manthan Beach Resort · Mangalore, India</div>
+      <div class="countdown-blocks">
+        <div class="cd-block"><div class="cd-num" id="cd-d">—</div><div class="cd-label">Days</div></div>
+        <div class="cd-block"><div class="cd-num" id="cd-h">—</div><div class="cd-label">Hours</div></div>
+        <div class="cd-block"><div class="cd-num" id="cd-m">—</div><div class="cd-label">Minutes</div></div>
+        <div class="cd-block"><div class="cd-num" id="cd-s">—</div><div class="cd-label">Seconds</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCENE 1: GUEST STATS ══ -->
+  <div class="scene" id="scene-1">
+    <div class="tv-header">
+      <div class="tv-logo">Tanvi <span>&amp;</span> Justin</div>
+      <div class="tv-clock" id="clock-1">12:00 PM</div>
+      <div class="tv-scene-label">Guest Statistics</div>
+    </div>
+    <div class="row" style="flex:1">
+      <!-- Left: big cards -->
+      <div class="col flex-3">
+        <div class="row flex-1">
+          <div class="card c-teal flex-1">
+            <div class="card-label">Confirmed</div>
+            <div class="stat-big" id="stat-confirmed">—</div>
+            <div class="card-sub">Guests attending 🎉</div>
+          </div>
+          <div class="card c-purple flex-1">
+            <div class="card-label">Pending RSVP</div>
+            <div class="stat-big" id="stat-pending">—</div>
+            <div class="card-sub">Awaiting response</div>
+          </div>
+          <div class="card c-coral flex-1">
+            <div class="card-label">Not Attending</div>
+            <div class="stat-big" id="stat-declined">—</div>
+            <div class="card-sub">Unable to join</div>
+          </div>
+        </div>
+        <div class="row flex-1">
+          <div class="card c-dark flex-1">
+            <div class="card-label">Total Invited</div>
+            <div class="stat-big" id="stat-total" style="color:var(--gold-l)">—</div>
+            <div class="card-sub">Guests on the list</div>
+            <div style="margin-top:1.2vh">
+              <div class="progress-track">
+                <div class="progress-fill" id="rsvp-bar" style="width:0%;background:var(--gold)"></div>
+              </div>
+              <div style="font-size:clamp(.5rem,.75vw,.6rem);color:var(--muted);margin-top:.4em">RSVP completion rate: <span id="rsvp-pct">0</span>%</div>
+            </div>
+          </div>
+          <div class="card c-gold flex-1">
+            <div class="card-label">Total Guests</div>
+            <div class="stat-big" id="stat-pax">—</div>
+            <div class="card-sub">Including +1s</div>
+          </div>
+          <div class="card c-dark flex-1">
+            <div class="card-label">Dietary Needs</div>
+            <div class="stat-big" id="stat-dietary" style="color:var(--sea-l)">—</div>
+            <div class="card-sub">Special requests noted</div>
+          </div>
+        </div>
+      </div>
+      <!-- Right: donut chart -->
+      <div class="card c-dark flex-1" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5vh">
+        <div class="card-label" style="text-align:center">RSVP Breakdown</div>
+        <div class="donut-wrap">
+          <svg id="donut-svg" viewBox="0 0 160 160" width="clamp(100px,16vw,140px)" height="clamp(100px,16vw,140px)">
+            <circle cx="80" cy="80" r="60" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="22"/>
+            <circle id="donut-confirmed" cx="80" cy="80" r="60" fill="none" stroke="#0d7a6b" stroke-width="22" stroke-dasharray="0 377" stroke-linecap="round" transform="rotate(-90 80 80)" style="transition:stroke-dasharray .8s ease"/>
+            <circle id="donut-pending" cx="80" cy="80" r="60" fill="none" stroke="#6b35c8" stroke-width="22" stroke-dasharray="0 377" stroke-linecap="round" transform="rotate(-90 80 80)" style="transition:stroke-dasharray .8s ease"/>
+            <circle id="donut-declined2" cx="80" cy="80" r="60" fill="none" stroke="#c93a20" stroke-width="22" stroke-dasharray="0 377" stroke-linecap="round" transform="rotate(-90 80 80)" style="transition:stroke-dasharray .8s ease"/>
+          </svg>
+          <div class="donut-center">
+            <div class="dnum" id="donut-center-num">—</div>
+            <div class="dlbl">Total</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.6vh;width:100%">
+          <div style="display:flex;align-items:center;gap:.6vw;font-size:clamp(.55rem,.85vw,.7rem)"><div style="width:10px;height:10px;border-radius:50%;background:#0d7a6b;flex-shrink:0"></div><span style="color:var(--muted)">Confirmed</span><span style="margin-left:auto;font-weight:600" id="leg-confirmed">—</span></div>
+          <div style="display:flex;align-items:center;gap:.6vw;font-size:clamp(.55rem,.85vw,.7rem)"><div style="width:10px;height:10px;border-radius:50%;background:#6b35c8;flex-shrink:0"></div><span style="color:var(--muted)">Pending</span><span style="margin-left:auto;font-weight:600" id="leg-pending">—</span></div>
+          <div style="display:flex;align-items:center;gap:.6vw;font-size:clamp(.55rem,.85vw,.7rem)"><div style="width:10px;height:10px;border-radius:50%;background:#c93a20;flex-shrink:0"></div><span style="color:var(--muted)">Declined</span><span style="margin-left:auto;font-weight:600" id="leg-declined">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCENE 2: EVENTS ══ -->
+  <div class="scene" id="scene-2">
+    <div class="tv-header">
+      <div class="tv-logo">Tanvi <span>&amp;</span> Justin</div>
+      <div class="tv-clock" id="clock-2">12:00 PM</div>
+      <div class="tv-scene-label">Event Schedule</div>
+    </div>
+    <div class="row" style="flex:1">
+      <div class="card c-dark flex-2" style="display:flex;flex-direction:column">
+        <div class="card-label" style="margin-bottom:1.5vh">Celebration Timeline · Dec 27 – 30, 2026</div>
+        <div id="events-list" style="flex:1;display:flex;flex-direction:column;justify-content:space-evenly">
+          <div style="text-align:center;color:var(--muted);font-size:.85rem">Loading events…</div>
+        </div>
+      </div>
+      <div class="col flex-1">
+        <div class="card c-navy" style="flex:1;display:flex;flex-direction:column;justify-content:center">
+          <div class="card-label">Venue</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(1.3rem,2.8vw,2.2rem);font-weight:300;margin-bottom:.4em">Manthan Beach Resort</div>
+          <div style="font-size:clamp(.6rem,.9vw,.75rem);color:rgba(255,255,255,.55);line-height:1.7">Mangalore, Karnataka, India<br>Arabian Sea beachfront<br>~30km from IXE Airport</div>
+          <div style="margin-top:1.2vh;font-size:clamp(.5rem,.75vw,.6rem);letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.35)">Complimentary pickups arranged</div>
+        </div>
+        <div class="card c-dark-accent" style="flex:1;display:flex;flex-direction:column;justify-content:center">
+          <div class="card-label">Dress Code</div>
+          <div style="display:flex;flex-direction:column;gap:.6vh">
+            <div style="display:flex;justify-content:space-between;font-size:clamp(.6rem,.9vw,.75rem);border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:.5vh">
+              <span style="color:var(--muted)">Haldi</span><span style="color:#fbbf24">Yellows &amp; Oranges</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:clamp(.6rem,.9vw,.75rem);border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:.5vh">
+              <span style="color:var(--muted)">Mehendi</span><span style="color:#4ade80">Relaxed &amp; Vibrant</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:clamp(.6rem,.9vw,.75rem);border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:.5vh">
+              <span style="color:var(--muted)">Sangeet</span><span style="color:#c084fc">Bold &amp; Festive</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:clamp(.6rem,.9vw,.75rem)">
+              <span style="color:var(--muted)">Wedding</span><span style="color:var(--gold-l)">Traditional Indian</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCENE 3: TRAVEL INFO ══ -->
+  <div class="scene" id="scene-3">
+    <div class="tv-header">
+      <div class="tv-logo">Tanvi <span>&amp;</span> Justin</div>
+      <div class="tv-clock" id="clock-3">12:00 PM</div>
+      <div class="tv-scene-label">Travel &amp; Info</div>
+    </div>
+    <div class="row" style="flex:1">
+      <div class="col flex-2">
+        <div class="row flex-1">
+          <div class="card c-teal flex-1">
+            <div class="card-label">Step 1</div>
+            <div style="font-size:2rem;margin:.3em 0">✈️</div>
+            <div class="card-title">Fly to Bangalore</div>
+            <div style="font-size:clamp(.6rem,.85vw,.7rem);color:rgba(255,255,255,.6);line-height:1.6;margin-top:.4em">International flights connect through Kempegowda Intl Airport (BLR)</div>
+          </div>
+          <div class="card c-purple flex-1">
+            <div class="card-label">Step 2</div>
+            <div style="font-size:2rem;margin:.3em 0">🛫</div>
+            <div class="card-title">Hop to Mangalore</div>
+            <div style="font-size:clamp(.6rem,.85vw,.7rem);color:rgba(255,255,255,.6);line-height:1.6;margin-top:.4em">30-min domestic flight BLR → IXE. Several daily departures</div>
+          </div>
+          <div class="card c-navy flex-1">
+            <div class="card-label">Step 3</div>
+            <div style="font-size:2rem;margin:.3em 0">🏨</div>
+            <div class="card-title">Manthan Beach Resort</div>
+            <div style="font-size:clamp(.6rem,.85vw,.7rem);color:rgba(255,255,255,.6);line-height:1.6;margin-top:.4em">~45 min drive from IXE. Complimentary pickup arranged for all guests</div>
+          </div>
+        </div>
+        <div class="row flex-1">
+          <div class="card c-dark flex-1">
+            <div style="font-size:1.4rem;margin-bottom:.4em">🛂</div>
+            <div class="card-title" style="font-size:clamp(.7rem,1.1vw,.9rem)">e-Visa Required</div>
+            <div style="font-size:clamp(.55rem,.8vw,.65rem);color:var(--muted);line-height:1.6;margin-top:.3em">Apply at indianvisaonline.gov.in · ~$25-80 · 3-5 business days</div>
+          </div>
+          <div class="card c-dark flex-1">
+            <div style="font-size:1.4rem;margin-bottom:.4em">☀️</div>
+            <div class="card-title" style="font-size:clamp(.7rem,1.1vw,.9rem)">Weather in December</div>
+            <div style="font-size:clamp(.55rem,.8vw,.65rem);color:var(--muted);line-height:1.6;margin-top:.3em">75-90°F (24-32°C) · Low humidity · Gentle sea breeze</div>
+          </div>
+          <div class="card c-dark flex-1">
+            <div style="font-size:1.4rem;margin-bottom:.4em">💵</div>
+            <div class="card-title" style="font-size:clamp(.7rem,1.1vw,.9rem)">Currency &amp; Connectivity</div>
+            <div style="font-size:clamp(.55rem,.8vw,.65rem);color:var(--muted);line-height:1.6;margin-top:.3em">INR · eSIM via Airalo · WhatsApp required · $100-200 USD buffer</div>
+          </div>
+        </div>
+      </div>
+      <div class="card c-dark flex-1" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5vh;text-align:center">
+        <div style="font-size:clamp(.55rem,.85vw,.7rem);letter-spacing:.25em;text-transform:uppercase;color:var(--gold)">India Time</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:clamp(2.5rem,5.5vw,4.5rem);font-weight:300;color:#fff" id="india-clock">——:——</div>
+        <div style="font-size:clamp(.55rem,.8vw,.65rem);color:var(--muted)">IST · UTC+5:30</div>
+        <div style="width:60%;height:1px;background:rgba(255,255,255,.1);margin:.5vh 0"></div>
+        <div style="font-size:clamp(.55rem,.85vw,.7rem);letter-spacing:.15em;text-transform:uppercase;color:var(--muted)">10.5 hrs ahead of EST</div>
+        <div style="background:rgba(196,147,63,.1);border:1px solid rgba(196,147,63,.2);border-radius:10px;padding:.8em 1.2em;margin-top:.5vh">
+          <div style="font-size:clamp(.55rem,.85vw,.7rem);color:var(--gold-l);line-height:1.7">Arrive a few days before<br>December 27 recommended</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /scenes -->
+
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyCoXMPGLlPn56oKYnWX6iHuJOlJYPlyUV8",authDomain:"tanvi-and-justin.firebaseapp.com",projectId:"tanvi-and-justin",storageBucket:"tanvi-and-justin.firebasestorage.app",messagingSenderId:"418808308001",appId:"1:418808308001:web:730d002e16f82327f5de60"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+
+const SCENES=4;
+let currentScene=0;
+let autoPlay=true;
+let autoInterval=12000;
+let autoTimer=null;
+let guestStats={confirmed:0,pending:0,declined:0,total:0,pax:0,dietary:0};
+let allEvents=[];
+
+// ── CLOCK ──
+function updateClocks(){
+  const now=new Date();
+  const timeStr=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  document.querySelectorAll('[id^="clock-"]').forEach(el=>el.textContent=timeStr);
+  // India time (IST = UTC+5:30)
+  const utc=now.getTime()+now.getTimezoneOffset()*60000;
+  const ist=new Date(utc+5.5*3600000);
+  const istStr=ist.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const el=document.getElementById('india-clock');
+  if(el)el.textContent=istStr;
+}
+setInterval(updateClocks,1000);
+updateClocks();
+
+// ── COUNTDOWN ──
+function updateCountdown(){
+  const target=new Date('2026-12-27T17:30:00').getTime();
+  const diff=target-Date.now();
+  if(diff<0)return;
+  document.getElementById('cd-d').textContent=String(Math.floor(diff/86400000)).padStart(2,'0');
+  document.getElementById('cd-h').textContent=String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
+  document.getElementById('cd-m').textContent=String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+  document.getElementById('cd-s').textContent=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+}
+setInterval(updateCountdown,1000);
+updateCountdown();
+
+// ── SCENE SWITCHER ──
+function goToScene(idx){
+  document.querySelectorAll('.scene').forEach((s,i)=>{
+    s.classList.toggle('active',i===idx);
+  });
+  document.querySelectorAll('.dot').forEach((d,i)=>{
+    d.classList.toggle('active',i===idx);
+  });
+  currentScene=idx;
+}
+
+function nextScene(){goToScene((currentScene+1)%SCENES)}
+function prevScene(){goToScene((currentScene-1+SCENES)%SCENES)}
+
+function startAuto(){
+  if(autoTimer)clearInterval(autoTimer);
+  if(autoPlay)autoTimer=setInterval(nextScene,autoInterval);
+}
+startAuto();
+
+// ── GUEST STATS FROM FIRESTORE ──
+async function loadGuestStats(){
+  try{
+    const snap=await db.collection('guests').get();
+    let conf=0,pend=0,decl=0,pax=0,diet=0;
+    snap.forEach(doc=>{
+      const d=doc.data();
+      if(d.attendance==='yes'){conf++;pax+=(d.guests||1);if(d.dietary&&d.dietary.trim())diet++;}
+      else if(d.attendance==='no')decl++;
+      else pend++;
+    });
+    guestStats={confirmed:conf,pending:pend,declined:decl,total:snap.size,pax,dietary:diet};
+    renderStats();
+  }catch(e){console.error(e);}
+}
+
+function renderStats(){
+  const s=guestStats;
+  document.getElementById('stat-confirmed').textContent=s.confirmed;
+  document.getElementById('stat-pending').textContent=s.pending;
+  document.getElementById('stat-declined').textContent=s.declined;
+  document.getElementById('stat-total').textContent=s.total;
+  document.getElementById('stat-pax').textContent=s.pax;
+  document.getElementById('stat-dietary').textContent=s.dietary;
+  document.getElementById('leg-confirmed').textContent=s.confirmed;
+  document.getElementById('leg-pending').textContent=s.pending;
+  document.getElementById('leg-declined').textContent=s.declined;
+  document.getElementById('donut-center-num').textContent=s.total;
+  const responded=s.confirmed+s.declined;
+  const pct=s.total>0?Math.round((responded/s.total)*100):0;
+  document.getElementById('rsvp-pct').textContent=pct;
+  document.getElementById('rsvp-bar').style.width=pct+'%';
+  // Donut
+  const circ=2*Math.PI*60;
+  const cFrac=s.total>0?s.confirmed/s.total:0;
+  const pFrac=s.total>0?s.pending/s.total:0;
+  const dFrac=s.total>0?s.declined/s.total:0;
+  const cLen=cFrac*circ,pLen=pFrac*circ,dLen=dFrac*circ;
+  const cOff=0;
+  const pOff=circ-cLen;
+  const dOff=circ-cLen-pLen;
+  setDonut('donut-confirmed',cLen,circ-cLen,0);
+  setDonut('donut-pending',pLen,circ-pLen,cLen);
+  setDonut('donut-declined2',dLen,circ-dLen,cLen+pLen);
+}
+
+function setDonut(id,dash,gap,offset){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.style.strokeDasharray=`${dash} ${gap}`;
+  el.style.strokeDashoffset=-offset;
+  el.setAttribute('transform',`rotate(-90 80 80)`);
+  el.style.transform=`rotate(${(offset/377)*360-90}deg)`;
+  el.style.transformOrigin='50% 50%';
+  // simpler approach
+  el.setAttribute('stroke-dasharray',`${dash} ${gap}`);
+  el.setAttribute('stroke-dashoffset',-(offset));
+}
+
+// ── EVENTS FROM FIRESTORE ──
+async function loadEvents(){
+  try{
+    const snap=await db.collection('events').orderBy('date','asc').get();
+    allEvents=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderEvents();
+  }catch(e){
+    allEvents=[
+      {name:'Haldi Ceremony',date:'2026-12-27',time:'10:00',venue:'Resort Gardens',type:'haldi'},
+      {name:'Mehendi Night',date:'2026-12-27',time:'18:00',venue:'Main Hall',type:'mehendi'},
+      {name:'Sangeet Evening',date:'2026-12-28',time:'19:00',venue:'Beachfront Stage',type:'sangeet'},
+      {name:'The Wedding Ceremony',date:'2026-12-29',time:'11:00',venue:'Manthan Beach Resort',type:'wedding'},
+      {name:'Reception Gala',date:'2026-12-30',time:'18:00',venue:'Grand Ballroom',type:'reception'},
+    ];
+    renderEvents();
+  }
+}
+
+const TYPE_ICONS={haldi:'🌻',mehendi:'🌿',sangeet:'🎵',wedding:'💍',reception:'🥂'};
+const TYPE_COLORS={haldi:'#c4933f',mehendi:'#16a34a',sangeet:'#8b5cf6',wedding:'#e85d3c',reception:'#2a6e7c'};
+
+function renderEvents(){
+  const container=document.getElementById('events-list');
+  if(!allEvents.length){container.innerHTML='<div style="color:rgba(255,255,255,.35);text-align:center">No events yet</div>';return;}
+  const now=Date.now();
+  let nextFound=false;
+  container.innerHTML='';
+  allEvents.forEach(ev=>{
+    const dt=ev.date?new Date(ev.date+'T'+(ev.time||'00:00')):null;
+    const isPast=dt&&dt.getTime()<now;
+    const isNext=!isPast&&!nextFound;
+    if(isNext)nextFound=true;
+    const day=dt?dt.getDate():'—';
+    const month=dt?dt.toLocaleDateString('en-US',{month:'short'}).toUpperCase():'—';
+    const timeStr=dt?dt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'';
+    const color=TYPE_COLORS[ev.type]||'#4a9dad';
+    const icon=TYPE_ICONS[ev.type]||'🎊';
+    const div=document.createElement('div');
+    div.className='event-row';
+    div.style.opacity=isPast?'.4':'1';
+    div.innerHTML=`
+      <div class="event-badge" style="background:${color}22;border:1px solid ${color}44">
+        <div class="ev-day" style="color:${color}">${day}</div>
+        <div class="ev-month" style="color:${color}">${month}</div>
+      </div>
+      <div style="font-size:1.8rem;flex-shrink:0">${icon}</div>
+      <div style="flex:1">
+        <div class="event-name">${ev.name}${isNext?'<span class="event-tag tag-next" style="margin-left:.6em">NEXT</span>':isPast?'<span class="event-tag tag-done" style="margin-left:.6em">DONE</span>':''}</div>
+        <div class="event-meta">${timeStr?timeStr+' · ':''}${ev.venue||''}</div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// ── TV CONTROL LISTENER ──
+db.collection('liveOps').doc('tvDisplay').onSnapshot(snap=>{
+  if(!snap.exists)return;
+  const d=snap.data();
+  if(typeof d.scene==='number'&&d.scene!==currentScene){
+    goToScene(d.scene);
+    startAuto();
+  }
+  if(typeof d.autoPlay==='boolean'){
+    autoPlay=d.autoPlay;
+    startAuto();
+  }
+  if(d.interval&&d.interval!==autoInterval){
+    autoInterval=d.interval*1000;
+    startAuto();
+  }
+  if(d.announcement&&d.announcement.trim()){
+    showAnnouncement(d.announcement,d.announcementFrom||'Wedding Team',d.dismissAfter||12);
+  }
+},()=>{});
+
+// ── ANNOUNCEMENT ──
+let annTimer=null;
+function showAnnouncement(text,from,secs){
+  const overlay=document.getElementById('announcement-overlay');
+  document.getElementById('ann-text').textContent=text;
+  document.getElementById('ann-from').textContent='— '+from;
+  overlay.classList.add('show');
+  if(annTimer)clearInterval(annTimer);
+  let remaining=secs;
+  document.getElementById('ann-timer').textContent=remaining;
+  annTimer=setInterval(()=>{
+    remaining--;
+    const el=document.getElementById('ann-timer');
+    if(el)el.textContent=remaining;
+    if(remaining<=0){
+      clearInterval(annTimer);
+      overlay.classList.remove('show');
+      db.collection('liveOps').doc('tvDisplay').update({announcement:'',announcementFrom:''}).catch(()=>{});
+    }
+  },1000);
+}
+
+// ── INIT ──
+loadGuestStats();
+loadEvents();
+setInterval(loadGuestStats,30000);
+</script>
+</body>
+</html>
